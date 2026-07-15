@@ -5,6 +5,10 @@ import logging
 import socket
 import time
 import requests
+import argparse
+import signal
+import shutil
+import subprocess
 
 from config import VAPConfig, ProfilerConfig
 
@@ -39,8 +43,8 @@ def build_container_mounts(config: VAPConfig, log_path: str) -> list[Mount]:
     return mounts
 
 
-def load_config():
-    with open("config.json", "r") as f:
+def load_config(config_path: str):
+    with open(config_path, "r") as f:
         config_json = json.load(f)
     config = VAPConfig.model_validate_json(json.dumps(config_json))
     logger.info(f"Config loaded: {config}")
@@ -233,10 +237,57 @@ def bench_and_profile(
     logger.info("Benchmark finished successfully")
 
 
-if __name__ == "__main__":
+def terminate_process(process: subprocess.Popen | None, timeout_sec: float = 5.0):
+    if process is None or process.poll() is not None:
+        return
+    process.terminate()
+    try:
+        process.wait(timeout=timeout_sec)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
 
-    cwd = os.getcwd()
-    log_dir = os.path.join(cwd, "logs")
+
+def visualize_profile(config: VAPConfig, log_dir: str):
+    venv_python = os.path.join(os.path.dirname(__file__), ".venv", "bin", "python")
+    tensorboard_cmd = [
+        venv_python,
+        "-m",
+        "tensorboard.main",
+        "--logdir",
+        os.path.join(log_dir, "vllm-profile"),
+    ]
+    try:
+        tensorboard_process = subprocess.Popen(tensorboard_cmd)
+    except FileNotFoundError:
+        logger.warning("%s is not available; skip TensorBoard visualization", venv_python)
+        return
+    logger.info("TensorBoard started with pid %s", tensorboard_process.pid)
+    try:
+        tensorboard_process.wait()
+    except KeyboardInterrupt:
+        logger.info("Stopping TensorBoard...")
+        raise
+    finally:
+        terminate_process(tensorboard_process)
+
+
+def clean(log_dir: str):
+    shutil.rmtree(log_dir)
+
+
+def register_signal_handler(container: docker.models.containers.Container):
+    def signal_handler(signum, frame):
+        logger.info(f"Signal {signum} received. Cleaning up...")
+        if container is not None:
+            container.stop()
+            container.remove()
+        exit(0)
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
+
+def run(args, log_dir: str):
     date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_path = os.path.join(log_dir, date_str)
     os.makedirs(log_path, exist_ok=True)
@@ -245,10 +296,10 @@ if __name__ == "__main__":
         log_path, debug=True if os.getenv("VAP_DEBUG") == "1" else False
     )
     docker_client = init_docker_client()
-    config = load_config()
+    config = load_config(args.config)
 
     logger.info("VAP started")
-
+    
     # 1. resource validation
     # 1.1. machine connection
     if config.distributed_cfg is not None:
@@ -287,16 +338,21 @@ if __name__ == "__main__":
     logger.info("Docker image %s is available", config.docker_image)
 
     try:
-
         # 2. vllm server deployment
         container = deploy_vllm_server(
             config, log_path, docker_client, config.docker_image, date_str
         )
+        register_signal_handler(container)
 
         vllm_port = config.vllm_port
         wait_for_vllm_ready(vllm_port)
 
+        # 3. benchmark and profile
+
         bench_and_profile(config, container)
+
+
+
     except Exception as e:
         logger.error(f"Error: {e}")
         raise
@@ -305,11 +361,35 @@ if __name__ == "__main__":
             container.stop()
             container.remove()
 
-    # 5. print profile result path
+
+    # 4. print profile result path
     logger.info(
         f"Profile archive has been saved to: {os.path.join(log_path, 'vllm-profile')}"
     )
-    logger.info(
-        f"You can check the profile result with pytorch tensorboard by using command:\n"
-    )
-    logger.info(f"\t\t tensorboard --logdir {os.path.join(log_path, 'vllm-profile')}")
+    # 5. visualization
+    visualize_profile(config, log_path)
+
+
+
+
+if __name__ == "__main__":
+
+    argparser = argparse.ArgumentParser()
+    subparsers = argparser.add_subparsers(dest="command")
+    run_parser = subparsers.add_parser("run", help="Run VAP")
+    clean_parser = subparsers.add_parser("clean", help="Clean VAP")
+    run_parser.add_argument("--config", type=str, default="example-config.json")
+    args = argparser.parse_args()
+
+    cwd = os.getcwd()
+    log_dir = os.path.join(cwd, "logs")
+
+    if args.command == "run":
+        run(args, log_dir)
+    elif args.command == "clean":
+        clean(log_dir)
+    else:
+        argparser.print_help()
+        exit(1)
+
+

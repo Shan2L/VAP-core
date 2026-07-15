@@ -1,0 +1,2125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VAP Control</title>
+  <script>
+    (() => {
+      try {
+        const savedTheme = localStorage.getItem("vap-theme");
+        document.documentElement.dataset.theme = savedTheme === "light" ? "light" : "dark";
+      } catch {
+        document.documentElement.dataset.theme = "dark";
+      }
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080719;
+      --panel: rgba(13, 19, 43, 0.82);
+      --panel-2: rgba(16, 25, 56, 0.74);
+      --input: rgba(4, 11, 28, 0.72);
+      --line: rgba(34, 211, 238, 0.28);
+      --line-2: rgba(236, 72, 153, 0.32);
+      --text: #eef7ff;
+      --muted: #97a8c6;
+      --accent: #22d3ee;
+      --accent-2: #ec4899;
+      --danger: #fb7185;
+      --ok: #34d399;
+      --warn: #facc15;
+    }
+
+    :root[data-theme="light"] {
+      color-scheme: light;
+      --bg: #f7f9ff;
+      --panel: rgba(255, 255, 255, 0.88);
+      --panel-2: rgba(255, 255, 255, 0.74);
+      --input: rgba(255, 255, 255, 0.92);
+      --line: rgba(59, 130, 246, 0.24);
+      --line-2: rgba(124, 58, 237, 0.20);
+      --text: #172033;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --accent-2: #7c3aed;
+      --danger: #e11d48;
+      --ok: #059669;
+      --warn: #b45309;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 14% 8%, rgba(34, 211, 238, 0.26), transparent 27%),
+        radial-gradient(circle at 86% 6%, rgba(236, 72, 153, 0.26), transparent 30%),
+        radial-gradient(circle at 62% 86%, rgba(168, 85, 247, 0.24), transparent 28%),
+        linear-gradient(135deg, #070617 0%, #11143a 45%, #190b2d 100%);
+      color: var(--text);
+      font-family: Inter, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      letter-spacing: 0.01em;
+    }
+
+    :root[data-theme="light"] body {
+      background:
+        radial-gradient(circle at 14% 8%, rgba(59, 130, 246, 0.14), transparent 28%),
+        radial-gradient(circle at 86% 6%, rgba(124, 58, 237, 0.12), transparent 30%),
+        radial-gradient(circle at 62% 86%, rgba(14, 165, 233, 0.10), transparent 28%),
+        linear-gradient(135deg, #f8fbff 0%, #eef4ff 48%, #f8f5ff 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(34, 211, 238, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(236, 72, 153, 0.06) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.72), transparent 82%);
+    }
+
+    :root[data-theme="light"] body::before {
+      background-image:
+        linear-gradient(rgba(37, 99, 235, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124, 58, 237, 0.06) 1px, transparent 1px);
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.42), transparent 84%);
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(7, 10, 28, 0.78);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 36px rgba(34, 211, 238, 0.12), 0 0 24px rgba(236, 72, 153, 0.10);
+    }
+
+    :root[data-theme="light"] header {
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 8px 30px rgba(37, 99, 235, 0.10);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #67e8f9 0%, #a78bfa 45%, #fb7185 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 0 12px rgba(34, 211, 238, 0.5));
+      text-shadow: 0 0 24px rgba(236, 72, 153, 0.42);
+    }
+
+    :root[data-theme="light"] h1 {
+      background: linear-gradient(90deg, #2563eb 0%, #7c3aed 55%, #0ea5e9 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      filter: none;
+      text-shadow: none;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 12px;
+      background: rgba(10, 18, 44, 0.86);
+      color: var(--text);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover:not(:disabled) {
+      border-color: var(--accent);
+      background: rgba(18, 30, 72, 0.92);
+      box-shadow: 0 0 18px rgba(34, 211, 238, 0.2), 0 6px 18px rgba(236, 72, 153, 0.12);
+    }
+
+    :root[data-theme="light"] button {
+      background: rgba(255, 255, 255, 0.86);
+    }
+
+    :root[data-theme="light"] button:hover:not(:disabled) {
+      background: rgba(239, 246, 255, 0.94);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.12);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    button.primary {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, #06b6d4, #8b5cf6 52%, #ec4899);
+      color: #ffffff;
+      box-shadow: 0 0 22px rgba(34, 211, 238, 0.28), 0 8px 22px rgba(236, 72, 153, 0.18);
+    }
+
+    button.danger {
+      border-color: rgba(251, 113, 133, 0.45);
+      background: rgba(76, 18, 38, 0.72);
+      color: var(--danger);
+    }
+
+    button.tensorboard-ready {
+      border-color: var(--ok);
+      color: var(--ok);
+      animation: tensorboard-pulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes tensorboard-pulse {
+      0%, 100% {
+        box-shadow: 0 0 0 rgba(52, 211, 153, 0);
+      }
+      50% {
+        box-shadow: 0 0 16px rgba(52, 211, 153, 0.28), 0 0 28px rgba(34, 211, 238, 0.12);
+      }
+    }
+
+    button.small {
+      padding: 5px 9px;
+      font-size: 12px;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(420px, 1fr) 12px minmax(460px, 760px);
+      gap: 12px;
+      width: min(1760px, calc(100% - 32px));
+      margin: 16px auto;
+      align-items: start;
+    }
+
+    body.resizing-layout {
+      cursor: col-resize;
+      user-select: none;
+    }
+
+    .splitter {
+      width: 12px;
+      height: calc(100vh - 90px);
+      position: sticky;
+      top: 74px;
+      border: 1px solid rgba(34, 211, 238, 0.22);
+      border-radius: 999px;
+      background:
+        linear-gradient(180deg, rgba(34, 211, 238, 0.32), rgba(236, 72, 153, 0.22)),
+        rgba(8, 13, 33, 0.68);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+      cursor: col-resize;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+
+    .splitter::before {
+      content: "";
+      position: absolute;
+      inset: 50% auto auto 50%;
+      width: 3px;
+      height: 54px;
+      border-radius: 999px;
+      transform: translate(-50%, -50%);
+      background: rgba(238, 247, 255, 0.55);
+      box-shadow: 0 -10px 0 rgba(238, 247, 255, 0.38), 0 10px 0 rgba(238, 247, 255, 0.38);
+    }
+
+    .splitter:hover,
+    body.resizing-layout .splitter {
+      border-color: rgba(34, 211, 238, 0.7);
+      box-shadow: 0 0 18px rgba(34, 211, 238, 0.22), inset 0 0 0 1px rgba(236, 72, 153, 0.12);
+    }
+
+    :root[data-theme="light"] .splitter {
+      border-color: rgba(37, 99, 235, 0.24);
+      background:
+        linear-gradient(180deg, rgba(37, 99, 235, 0.20), rgba(124, 58, 237, 0.12)),
+        rgba(255, 255, 255, 0.72);
+    }
+
+    :root[data-theme="light"] .splitter::before {
+      background: rgba(37, 99, 235, 0.55);
+      box-shadow: 0 -10px 0 rgba(37, 99, 235, 0.30), 0 10px 0 rgba(37, 99, 235, 0.30);
+    }
+
+    .form {
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .note {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel-2);
+      padding: 12px 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    section {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      overflow: hidden;
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24), inset 0 0 0 1px rgba(236, 72, 153, 0.08);
+      backdrop-filter: blur(14px);
+      transition: border-color 0.26s ease, box-shadow 0.26s ease, transform 0.26s ease;
+    }
+
+    :root[data-theme="light"] section {
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.56);
+    }
+
+    section:hover {
+      border-color: rgba(34, 211, 238, 0.5);
+    }
+
+    section.disabled-panel {
+      border-color: rgba(148, 163, 184, 0.22);
+      background: rgba(15, 23, 42, 0.62);
+      box-shadow: none;
+    }
+
+    :root[data-theme="light"] section.disabled-panel {
+      background: rgba(241, 245, 249, 0.72);
+    }
+
+    section.disabled-panel > h2 {
+      background: rgba(30, 41, 59, 0.62);
+      color: #cbd5e1;
+    }
+
+    :root[data-theme="light"] section.disabled-panel > h2 {
+      background: rgba(226, 232, 240, 0.68);
+      color: #64748b;
+    }
+
+    section.disabled-panel .section-body {
+      opacity: 0.72;
+    }
+
+    section > h2 {
+      margin: 0;
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, rgba(34, 211, 238, 0.13), rgba(236, 72, 153, 0.10));
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .config-panel > h2 {
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .config-panel > h2::after {
+      content: "▸";
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .config-panel.active > h2::after {
+      content: "▾";
+      color: var(--accent);
+    }
+
+    .config-panel.active {
+      border-color: rgba(34, 211, 238, 0.62);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22), 0 0 16px rgba(34, 211, 238, 0.12), inset 0 0 0 1px rgba(236, 72, 153, 0.10);
+    }
+
+    .config-panel:not(.active) > h2 {
+      border-bottom: none;
+    }
+
+    .config-panel:not(.active) .section-body {
+      max-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .section-body {
+      max-height: 760px;
+      padding: 15px;
+      opacity: 1;
+      overflow: hidden;
+      transition: max-height 0.28s ease, opacity 0.22s ease, padding-top 0.28s ease, padding-bottom 0.28s ease;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(260px, 420px));
+      gap: 12px;
+      justify-content: start;
+    }
+
+    .wide-field {
+      grid-column: 1 / -1;
+      max-width: 860px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 8px 10px;
+      background: var(--input);
+      color: var(--text);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.16), 0 0 18px rgba(34, 211, 238, 0.12);
+    }
+
+    .hint {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    code {
+      color: var(--accent);
+      font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: 12.5px;
+    }
+
+    .kv-list,
+    .list-editor {
+      display: grid;
+      gap: 8px;
+    }
+
+    .kv-row {
+      display: grid;
+      grid-template-columns: minmax(220px, 320px) minmax(180px, 260px) auto;
+      gap: 8px;
+      align-items: center;
+      justify-content: start;
+    }
+
+    .kv-row input,
+    .mono {
+      font-family: ui-monospace, "SFMono-Regular", "JetBrains Mono", Consolas, monospace;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .list-row {
+      display: grid;
+      grid-template-columns: minmax(260px, 520px) auto;
+      gap: 8px;
+      align-items: center;
+      justify-content: start;
+    }
+
+    .pair-row {
+      display: grid;
+      grid-template-columns: minmax(220px, 360px) minmax(220px, 360px) auto;
+      gap: 8px;
+      align-items: center;
+      justify-content: start;
+    }
+
+    .readonly-row {
+      display: grid;
+      grid-template-columns: 160px minmax(220px, 520px);
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .readonly-row strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .readonly-value {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 8px 10px;
+      background: rgba(4, 11, 28, 0.58);
+      color: var(--muted);
+      font-family: ui-monospace, "SFMono-Regular", "JetBrains Mono", Consolas, monospace;
+      font-size: 14px;
+      font-weight: 500;
+      word-break: break-word;
+    }
+
+    :root[data-theme="light"] .readonly-value {
+      background: rgba(248, 250, 252, 0.92);
+    }
+
+    .add-row {
+      margin-top: 10px;
+    }
+
+    .log-panel {
+      position: sticky;
+      top: 74px;
+      height: calc(100vh - 90px);
+      display: grid;
+      align-content: start;
+      gap: 8px;
+      padding: 8px;
+    }
+
+    .log-item {
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--panel);
+      overflow: hidden;
+      transition: border-color 0.26s ease, box-shadow 0.26s ease, transform 0.26s ease;
+    }
+
+    .log-item:hover {
+      border-color: rgba(34, 211, 238, 0.5);
+    }
+
+    .log-item.active {
+      border-color: rgba(34, 211, 238, 0.62);
+      box-shadow: 0 0 16px rgba(34, 211, 238, 0.12), inset 0 0 0 1px rgba(236, 72, 153, 0.08);
+    }
+
+    :root[data-theme="light"] .log-item.active {
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.10), inset 0 0 0 1px rgba(255, 255, 255, 0.60);
+    }
+
+    .log-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 11px 14px;
+      border: none;
+      background: linear-gradient(90deg, rgba(34, 211, 238, 0.12), rgba(236, 72, 153, 0.10));
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .log-toggle:hover {
+      box-shadow: none;
+      background: linear-gradient(90deg, rgba(34, 211, 238, 0.18), rgba(236, 72, 153, 0.15));
+    }
+
+    .log-title {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .log-heading {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .log-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .log-action {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      line-height: 1.2;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .log-body {
+      max-height: 0;
+      height: calc(100vh - 244px);
+      border-top: 1px solid var(--line);
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, opacity 0.24s ease;
+    }
+
+    .log-item.active .log-body {
+      max-height: calc(100vh - 244px);
+      min-height: 220px;
+      opacity: 1;
+    }
+
+    .status {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px 9px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status.running { color: var(--warn); }
+    .status.done { color: var(--ok); }
+    .status.error { color: var(--danger); }
+
+    .log-output {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 12px 12px 28px;
+      overflow: auto;
+      box-sizing: border-box;
+      scroll-padding-bottom: 28px;
+      background:
+        linear-gradient(rgba(34, 211, 238, 0.06) 1px, transparent 1px),
+        rgba(3, 8, 22, 0.88);
+      background-size: 100% 24px;
+      color: #dbeafe;
+      font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: 12.5px;
+      line-height: 1.58;
+      white-space: pre-wrap;
+      word-break: normal;
+      overflow-wrap: normal;
+    }
+
+    :root[data-theme="light"] .log-output {
+      background:
+        linear-gradient(rgba(37, 99, 235, 0.05) 1px, transparent 1px),
+        rgba(248, 250, 252, 0.96);
+      color: #1e293b;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      max-width: 420px;
+      padding: 11px 13px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: rgba(8, 13, 33, 0.92);
+      color: var(--text);
+      font-size: 13px;
+      opacity: 0;
+      transform: translateY(6px);
+      pointer-events: none;
+      transition: opacity 0.16s, transform 0.16s;
+    }
+
+    :root[data-theme="light"] .toast {
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.ok { color: var(--ok); }
+    .toast.error { color: var(--danger); }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.38);
+      backdrop-filter: blur(6px);
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .validation-modal {
+      width: min(720px, 100%);
+      max-height: min(780px, calc(100vh - 40px));
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(10, 16, 38, 0.94);
+      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.42), 0 0 38px rgba(34, 211, 238, 0.12);
+    }
+
+    :root[data-theme="light"] .validation-modal {
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 28px 70px rgba(15, 23, 42, 0.16);
+    }
+
+    .validation-head,
+    .validation-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(15, 23, 42, 0.72);
+    }
+
+    :root[data-theme="light"] .validation-head,
+    :root[data-theme="light"] .validation-foot {
+      background: rgba(248, 250, 252, 0.86);
+    }
+
+    .validation-foot {
+      border-top: 1px solid var(--line);
+      border-bottom: none;
+    }
+
+    .validation-head h3 {
+      margin: 0 0 4px;
+      font-size: 16px;
+    }
+
+    .validation-head p,
+    .validation-foot span {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .progress-wrap {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .progress-track {
+      height: 9px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e5e7eb;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #06b6d4, #8b5cf6);
+      transition: width 0.22s ease;
+    }
+
+    .validation-list {
+      display: grid;
+      gap: 8px;
+      overflow: auto;
+      padding: 14px 16px;
+    }
+
+    .validation-item {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      padding: 10px 11px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(6, 12, 30, 0.72);
+      transition: border-color 0.16s, background 0.16s, transform 0.16s;
+    }
+
+    :root[data-theme="light"] .validation-item {
+      background: rgba(255, 255, 255, 0.82);
+    }
+
+    .validation-item.running {
+      border-color: rgba(34, 211, 238, 0.48);
+      background: rgba(8, 47, 73, 0.42);
+      transform: translateY(-1px);
+    }
+
+    .validation-item.ok {
+      border-color: rgba(52, 211, 153, 0.38);
+      background: rgba(6, 78, 59, 0.32);
+    }
+
+    .validation-item.error {
+      border-color: rgba(251, 113, 133, 0.42);
+      background: rgba(76, 18, 38, 0.34);
+    }
+
+    .validation-item.warning {
+      border-color: rgba(250, 204, 21, 0.42);
+      background: rgba(113, 63, 18, 0.30);
+    }
+
+    .validation-icon {
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: #e5e7eb;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .validation-item.running .validation-icon {
+      background: #cffafe;
+      color: var(--accent);
+    }
+
+    .validation-item.ok .validation-icon {
+      background: #dcfce7;
+      color: var(--ok);
+    }
+
+    .validation-item.error .validation-icon {
+      background: #ffe4e6;
+      color: var(--danger);
+    }
+
+    .validation-item.warning .validation-icon {
+      background: #fef3c7;
+      color: var(--warn);
+    }
+
+    .validation-title {
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .validation-message {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    @media (max-width: 1100px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .splitter {
+        display: none;
+      }
+
+      .log-panel {
+        position: static;
+        height: 420px;
+      }
+    }
+
+    @media (max-width: 760px) {
+      header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      main {
+        width: calc(100% - 20px);
+        margin: 10px auto;
+      }
+
+      .grid,
+      .kv-row,
+      .list-row,
+      .pair-row,
+      .readonly-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>VAP CONTROL</h1>
+    <div class="actions">
+      <button id="btn-theme" type="button" aria-pressed="false">亮白主题</button>
+      <button id="btn-reload" type="button">重新加载</button>
+      <button id="btn-validate" type="button">校验配置</button>
+      <button id="btn-save" type="button">保存配置</button>
+      <button class="primary" id="btn-run" type="button">运行</button>
+      <button id="btn-tensorboard" type="button" disabled>TensorBoard</button>
+      <button class="danger" id="btn-stop" type="button" disabled>停止</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="form">
+      <div class="note">
+        修改配置后保存到 <code>config.json</code>。点击运行会启动 <code>main.py</code>，右侧显示实时日志。
+      </div>
+
+      <section class="config-panel active">
+        <h2>基础配置</h2>
+        <div class="section-body">
+          <div class="grid">
+            <label>模型名称<input id="model_name" placeholder="Qwen3-0.6B" /></label>
+            <label>模型根目录<input id="model_path" placeholder="/path/to/models" /></label>
+            <label class="wide-field">Docker 镜像<input id="image_name" placeholder="registry/image" /></label>
+            <label>镜像标签<input id="image_tag" placeholder="latest" /></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="config-panel disabled-panel">
+        <h2>分布式配置</h2>
+        <div class="section-body">
+          <p class="hint">暂不支持编辑：当前 <code>main.py</code> 会在加载配置后手动禁用 <code>distributed_cfg</code>。</p>
+          <div class="readonly-row"><strong>num_nodes</strong><div class="readonly-value" id="dist-num-nodes"></div></div>
+          <div class="readonly-row"><strong>ray_port</strong><div class="readonly-value" id="dist-ray-port"></div></div>
+          <div class="readonly-row"><strong>head_node</strong><div class="readonly-value" id="dist-head-node"></div></div>
+          <div class="readonly-row"><strong>worker_nodes</strong><div class="readonly-value" id="dist-worker-nodes"></div></div>
+        </div>
+      </section>
+
+      <section class="config-panel">
+        <h2>容器配置</h2>
+        <div class="section-body">
+          <p class="hint">GPU 设备</p>
+          <div class="list-editor" id="devices-list"></div>
+          <button class="small add-row" type="button" id="add-device">+ 添加设备</button>
+
+          <p class="hint" style="margin-top:18px">挂载目录</p>
+          <div class="list-editor" id="mounts-list"></div>
+          <button class="small add-row" type="button" id="add-mount">+ 添加挂载</button>
+
+          <p class="hint" style="margin-top:18px">环境变量</p>
+          <div class="list-editor" id="env-list"></div>
+          <button class="small add-row" type="button" id="add-env">+ 添加环境变量</button>
+        </div>
+      </section>
+
+      <section class="config-panel">
+        <h2>vLLM 部署配置</h2>
+        <div class="section-body">
+          <p class="hint">值为 <code>null</code> 表示只传 flag。<code>--host</code> 和 <code>--port</code> 会与 Benchmark 配置自动同步。</p>
+          <div class="kv-list" id="deploy-kv"></div>
+          <button class="small add-row" type="button" data-add-kv="deploy-kv">+ 添加参数</button>
+        </div>
+      </section>
+
+      <section class="config-panel">
+        <h2>Profiler 配置</h2>
+        <div class="section-body">
+          <p class="hint">布尔值填 <code>true</code> / <code>false</code>，可自由增删。</p>
+          <div class="kv-list" id="profiler-kv"></div>
+          <button class="small add-row" type="button" data-add-kv="profiler-kv">+ 添加参数</button>
+        </div>
+      </section>
+
+      <section class="config-panel">
+        <h2>Benchmark 配置</h2>
+        <div class="section-body">
+          <p class="hint"><code>--host</code> 和 <code>--port</code> 会与 vLLM 部署配置自动同步，避免运行时不一致。</p>
+          <div class="kv-list" id="bench-kv"></div>
+          <button class="small add-row" type="button" data-add-kv="bench-kv">+ 添加参数</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="splitter" id="layout-splitter" role="separator" aria-label="调整配置和日志区域宽度" aria-orientation="vertical" tabindex="0"></div>
+
+    <section class="log-panel">
+      <div class="log-item active" data-log-panel="run">
+        <button class="log-toggle" type="button" data-open-log="run">
+          <span class="log-heading">
+            <span class="log-title">运行日志</span>
+            <span class="status" id="run-status">空闲</span>
+          </span>
+          <span class="log-actions">
+            <span class="log-action status" data-copy-log="log-output">复制</span>
+            <span class="log-action status" data-download-log="log-output" data-file-name="vap_log.txt">下载</span>
+          </span>
+        </button>
+        <div class="log-body">
+          <pre class="log-output" id="log-output"></pre>
+        </div>
+      </div>
+      <div class="log-item" data-log-panel="deploy">
+        <button class="log-toggle" type="button" data-open-log="deploy">
+          <span class="log-heading">
+            <span class="log-title">vLLM 部署日志</span>
+            <span class="status">vllm_deploy.log</span>
+          </span>
+          <span class="log-actions">
+            <span class="log-action status" data-copy-log="deploy-log-output">复制</span>
+            <span class="log-action status" data-download-log="deploy-log-output" data-file-name="vllm_deploy.log">下载</span>
+          </span>
+        </button>
+        <div class="log-body">
+          <pre class="log-output" id="deploy-log-output"></pre>
+        </div>
+      </div>
+      <div class="log-item" data-log-panel="bench">
+        <button class="log-toggle" type="button" data-open-log="bench">
+          <span class="log-heading">
+            <span class="log-title">vLLM Bench 日志</span>
+            <span class="status">vllm_bench.log</span>
+          </span>
+          <span class="log-actions">
+            <span class="log-action status" data-copy-log="bench-log-output">复制</span>
+            <span class="log-action status" data-download-log="bench-log-output" data-file-name="vllm_bench.log">下载</span>
+          </span>
+        </button>
+        <div class="log-body">
+          <pre class="log-output" id="bench-log-output"></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="validation-modal" role="dialog" aria-modal="true" aria-labelledby="validation-title">
+    <div class="validation-modal">
+      <div class="validation-head">
+        <div>
+          <h3 id="validation-title">配置校验进度</h3>
+          <p id="validation-subtitle">准备校验当前表单配置</p>
+        </div>
+        <button class="small" id="validation-close" type="button">关闭</button>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span id="validation-progress-text">0 / 0</span>
+          <span id="validation-progress-percent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-bar" id="validation-progress-bar"></div>
+        </div>
+      </div>
+      <div class="validation-list" id="validation-list"></div>
+      <div class="validation-foot">
+        <span id="validation-summary">等待开始</span>
+        <button class="primary small" id="validation-ok" type="button">知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const DEFAULT_CONFIG = {
+      model_cfg: {
+        model_name: "Qwen3-0.6B",
+        model_path: "/home/DomainUsers/syliu",
+      },
+      distributed_cfg: {
+        num_nodes: 2,
+        ray_port: 6379,
+        head_node: "localhost",
+        worker_nodes: ["cse-ai-10.amd.com", "cse-ai-amd.com"],
+      },
+      vllm_deploy_cfg: {
+        "--host": "0.0.0.0",
+        "--port": 8080,
+        "--trust-remote-code": null,
+        "--no-enable-chunked-prefill": null,
+        "--no-enable-prefix-caching": null,
+        "--gpu-memory-utilization": 0.9,
+        "--max-model-len": 32768,
+        "-tp": 2,
+      },
+      vllm_bench_cfg: {
+        "--backend": "vllm",
+        "--host": "0.0.0.0",
+        "--port": 8080,
+        "--endpoint": "/v1/completions",
+        "--ignore-eos": null,
+        "--dataset-name": "random",
+        "--random-input-len": 2048,
+        "--random-output-len": 128,
+        "--max-concurrency": 32,
+        "--num-prompts": 64,
+        "--request-rate": "inf",
+      },
+      profiler_cfg: {
+        profiler: "torch",
+        torch_profiler_dir: "/app/VAP/log/vllm-profile",
+        torch_profiler_record_shapes: true,
+        torch_profiler_with_stack: false,
+        torch_profiler_with_memory: true,
+        torch_profiler_with_flops: false,
+        torch_profiler_use_gzip: true,
+        delay_iterations: 0,
+        max_iterations: 10,
+      },
+      container_cfg: {
+        image_name: "mkmhub.amd.com/sw-cserocmopt-dev/release/wuxi_w7800/vllm0.16.0_pytorch2.9.1_rocm7.2",
+        image_tag: "20260311",
+        devices: [
+          "/dev/dri/renderD134",
+          "/dev/dri/renderD135",
+        ],
+        mounts: [
+          {
+            target: "/home/sylvan",
+            source: "/home/DomainUsers/syliu",
+          },
+        ],
+        env_vars: {
+          VLLM_USE_TRITON_FLASH_ATTN: "1",
+          PYTORCH_TUNABLEOP_ENABLED: "0",
+          PYTORCH_TUNABLEOP_TUNING: "0",
+          PYTORCH_TUNABLEOP_VERBOSE: "0",
+          PYTHONPATH: "/opt/rocm/lib",
+          NCCL_P2P_DISABLE: "0",
+          VLLM_WORKER_MULTIPROC_METHOD: "spawn",
+          VLLM_MLA_DISABLE: "1",
+          NCCL_DEBUG: "VERSION",
+        },
+      },
+    };
+
+    const toastEl = document.getElementById("toast");
+    const validationModal = document.getElementById("validation-modal");
+    const validationList = document.getElementById("validation-list");
+    const validationSubtitle = document.getElementById("validation-subtitle");
+    const validationSummary = document.getElementById("validation-summary");
+    const validationProgressText = document.getElementById("validation-progress-text");
+    const validationProgressPercent = document.getElementById("validation-progress-percent");
+    const validationProgressBar = document.getElementById("validation-progress-bar");
+    const logOutput = document.getElementById("log-output");
+    const deployLogOutput = document.getElementById("deploy-log-output");
+    const benchLogOutput = document.getElementById("bench-log-output");
+    const runStatus = document.getElementById("run-status");
+    const btnTheme = document.getElementById("btn-theme");
+    const btnRun = document.getElementById("btn-run");
+    const btnTensorBoard = document.getElementById("btn-tensorboard");
+    const btnStop = document.getElementById("btn-stop");
+    const mainLayout = document.querySelector("main");
+    const layoutSplitter = document.getElementById("layout-splitter");
+    const THEME_KEY = "vap-theme";
+    const LAYOUT_RATIO_KEY = "vap-layout-config-ratio";
+    const DEFAULT_CONFIG_RATIO = 0.56;
+    const CONFIG_MIN_WIDTH = 420;
+    const LOG_MIN_WIDTH = 460;
+    const SPLITTER_WIDTH = 12;
+    let statusTimer = null;
+    let currentConfig = DEFAULT_CONFIG;
+
+    function getCurrentTheme() {
+      return document.documentElement.dataset.theme === "light" ? "light" : "dark";
+    }
+
+    function applyTheme(theme) {
+      const normalizedTheme = theme === "light" ? "light" : "dark";
+      document.documentElement.dataset.theme = normalizedTheme;
+      btnTheme.textContent = normalizedTheme === "light" ? "黑夜主题" : "亮白主题";
+      btnTheme.setAttribute("aria-pressed", String(normalizedTheme === "light"));
+    }
+
+    function toggleTheme() {
+      const nextTheme = getCurrentTheme() === "light" ? "dark" : "light";
+      localStorage.setItem(THEME_KEY, nextTheme);
+      applyTheme(nextTheme);
+      showToast(nextTheme === "light" ? "已切换到亮白主题" : "已切换到黑夜主题");
+    }
+
+    function getSavedLayoutRatio() {
+      const rawRatio = Number(localStorage.getItem(LAYOUT_RATIO_KEY));
+      if (!Number.isFinite(rawRatio)) return DEFAULT_CONFIG_RATIO;
+      return Math.min(0.8, Math.max(0.25, rawRatio));
+    }
+
+    function getLayoutMetrics() {
+      const styles = getComputedStyle(mainLayout);
+      const gap = Number.parseFloat(styles.columnGap) || 0;
+      const availableWidth = mainLayout.clientWidth - SPLITTER_WIDTH - gap * 2;
+      const minConfigWidth = Math.min(CONFIG_MIN_WIDTH, availableWidth * 0.55);
+      const minLogWidth = Math.min(LOG_MIN_WIDTH, availableWidth * 0.55);
+      return { availableWidth, gap, minConfigWidth, minLogWidth };
+    }
+
+    function isWideLayout() {
+      return window.matchMedia("(min-width: 1101px)").matches;
+    }
+
+    function applyLayoutRatio(ratio) {
+      if (!isWideLayout()) {
+        mainLayout.style.gridTemplateColumns = "";
+        return;
+      }
+      const { availableWidth, minConfigWidth, minLogWidth } = getLayoutMetrics();
+      if (availableWidth <= 0) return;
+      const maxConfigWidth = Math.max(minConfigWidth, availableWidth - minLogWidth);
+      const configWidth = Math.min(maxConfigWidth, Math.max(minConfigWidth, availableWidth * ratio));
+      const logWidth = Math.max(minLogWidth, availableWidth - configWidth);
+      mainLayout.style.gridTemplateColumns = `${configWidth}px ${SPLITTER_WIDTH}px ${logWidth}px`;
+    }
+
+    function saveAndApplyLayoutRatio(ratio) {
+      const clampedRatio = Math.min(0.8, Math.max(0.25, ratio));
+      localStorage.setItem(LAYOUT_RATIO_KEY, String(clampedRatio));
+      applyLayoutRatio(clampedRatio);
+    }
+
+    function initLayoutSplitter() {
+      applyLayoutRatio(getSavedLayoutRatio());
+      layoutSplitter.addEventListener("pointerdown", (event) => {
+        if (!isWideLayout()) return;
+        event.preventDefault();
+        layoutSplitter.setPointerCapture(event.pointerId);
+        document.body.classList.add("resizing-layout");
+      });
+      layoutSplitter.addEventListener("pointermove", (event) => {
+        if (!document.body.classList.contains("resizing-layout") || !isWideLayout()) return;
+        const { availableWidth, gap } = getLayoutMetrics();
+        const rect = mainLayout.getBoundingClientRect();
+        const configWidth = event.clientX - rect.left - gap * 0.5;
+        saveAndApplyLayoutRatio(configWidth / availableWidth);
+      });
+      layoutSplitter.addEventListener("pointerup", (event) => {
+        document.body.classList.remove("resizing-layout");
+        if (layoutSplitter.hasPointerCapture(event.pointerId)) {
+          layoutSplitter.releasePointerCapture(event.pointerId);
+        }
+      });
+      layoutSplitter.addEventListener("pointercancel", () => {
+        document.body.classList.remove("resizing-layout");
+      });
+      layoutSplitter.addEventListener("dblclick", () => saveAndApplyLayoutRatio(DEFAULT_CONFIG_RATIO));
+      layoutSplitter.addEventListener("keydown", (event) => {
+        if (!["ArrowLeft", "ArrowRight", "Home"].includes(event.key) || !isWideLayout()) return;
+        event.preventDefault();
+        const currentRatio = getSavedLayoutRatio();
+        if (event.key === "Home") {
+          saveAndApplyLayoutRatio(DEFAULT_CONFIG_RATIO);
+          return;
+        }
+        const step = event.shiftKey ? 0.04 : 0.02;
+        saveAndApplyLayoutRatio(currentRatio + (event.key === "ArrowLeft" ? -step : step));
+      });
+      window.addEventListener("resize", () => applyLayoutRatio(getSavedLayoutRatio()));
+    }
+
+    function showToast(message, type = "ok") {
+      toastEl.textContent = message;
+      toastEl.className = "toast show " + type;
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toastEl.classList.remove("show"), 3000);
+    }
+
+    async function readJsonResponse(response, fallbackMessage) {
+      const text = await response.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
+          throw new Error(`${fallbackMessage}：后端返回了 HTML 页面，通常是服务进程未重启或接口不存在`);
+        }
+        throw new Error(`${fallbackMessage}：后端返回的不是合法 JSON`);
+      }
+    }
+
+    function setRunState(state, label) {
+      runStatus.textContent = label;
+      runStatus.className = "status" + (state ? " " + state : "");
+      btnRun.disabled = state === "running";
+      btnStop.disabled = state !== "running";
+    }
+
+    function setTensorBoardReady(isReady) {
+      btnTensorBoard.classList.toggle("tensorboard-ready", isReady);
+      btnTensorBoard.disabled = !isReady;
+      btnTensorBoard.title = isReady ? "TensorBoard 已启动，点击打开" : "打开 TensorBoard";
+    }
+
+    function startStatusPolling() {
+      stopStatusPolling();
+      statusTimer = setInterval(() => {
+        pollStatus().catch((error) => showToast(error.message, "error"));
+      }, 2000);
+    }
+
+    function stopStatusPolling() {
+      if (statusTimer) clearInterval(statusTimer);
+      statusTimer = null;
+    }
+
+    function openLogPanel(name) {
+      const activePanel = document.querySelector("[data-log-panel].active");
+      if (activePanel?.dataset.logPanel === name) return;
+      document.querySelectorAll("[data-log-panel]").forEach((panel) => {
+        panel.classList.toggle("active", panel.dataset.logPanel === name);
+      });
+      if (name === "deploy") {
+        loadLogFile("vllm_deploy.log", deployLogOutput);
+      } else if (name === "bench") {
+        loadLogFile("vllm_bench.log", benchLogOutput);
+      }
+    }
+
+    function openConfigPanel(panel) {
+      document.querySelectorAll(".config-panel").forEach((item) => {
+        item.classList.toggle("active", item === panel);
+      });
+    }
+
+    async function loadLogFile(fileName, target) {
+      target.textContent = "加载中...";
+      try {
+        const response = await fetch(`/api/log-file?name=${encodeURIComponent(fileName)}`);
+        const data = await readJsonResponse(response, "读取日志失败");
+        if (!response.ok) throw new Error(data.message || "读取日志失败");
+        target.textContent = data.exists ? data.content : (data.message || `本次运行暂未生成 ${fileName}`);
+        scrollLogToBottom(target);
+      } catch (error) {
+        target.textContent = error.message;
+      }
+    }
+
+    function scrollLogToBottom(target) {
+      requestAnimationFrame(() => {
+        target.scrollTop = target.scrollHeight;
+      });
+    }
+
+    function getLogText(targetId) {
+      return document.getElementById(targetId)?.textContent || "";
+    }
+
+    async function copyLogContent(targetId) {
+      const text = getLogText(targetId);
+      if (!text.trim()) {
+        showToast("当前日志为空", "error");
+        return;
+      }
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
+      }
+      showToast("日志内容已复制");
+    }
+
+    function downloadLogContent(targetId, fileName) {
+      const text = getLogText(targetId);
+      if (!text.trim()) {
+        showToast("当前日志为空", "error");
+        return;
+      }
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showToast("日志下载已开始");
+    }
+
+    function refreshFileLogs() {
+      if (document.querySelector('[data-log-panel="deploy"]').classList.contains("active")) {
+        loadLogFile("vllm_deploy.log", deployLogOutput);
+      }
+      if (document.querySelector('[data-log-panel="bench"]').classList.contains("active")) {
+        loadLogFile("vllm_bench.log", benchLogOutput);
+      }
+    }
+
+    function parseValue(raw) {
+      const value = raw.trim();
+      if (value === "" || value.toLowerCase() === "null") return null;
+      if (value === "true") return true;
+      if (value === "false") return false;
+      if (/^-?\d+$/.test(value)) return parseInt(value, 10);
+      if (/^-?\d+\.\d+$/.test(value)) return parseFloat(value);
+      return value;
+    }
+
+    function formatValue(value) {
+      return value === null ? "null" : String(value);
+    }
+
+    function withDefaults(config) {
+      return {
+        ...DEFAULT_CONFIG,
+        ...config,
+        model_cfg: {
+          ...DEFAULT_CONFIG.model_cfg,
+          ...(config.model_cfg || {}),
+        },
+        distributed_cfg: config.distributed_cfg === null ? null : {
+          ...DEFAULT_CONFIG.distributed_cfg,
+          ...(config.distributed_cfg || {}),
+        },
+        vllm_deploy_cfg: config.vllm_deploy_cfg ?? DEFAULT_CONFIG.vllm_deploy_cfg,
+        vllm_bench_cfg: config.vllm_bench_cfg ?? DEFAULT_CONFIG.vllm_bench_cfg,
+        profiler_cfg: config.profiler_cfg ?? DEFAULT_CONFIG.profiler_cfg,
+        container_cfg: {
+          ...DEFAULT_CONFIG.container_cfg,
+          ...(config.container_cfg || {}),
+        },
+      };
+    }
+
+    function escapeAttr(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;");
+    }
+
+    const SYNCED_VLLM_KEYS = new Set(["--host", "--port"]);
+    let syncingVllmKv = false;
+
+    function addKvRow(targetId, key = "", value = "") {
+      const row = document.createElement("div");
+      row.className = "kv-row";
+      row.dataset.targetId = targetId;
+      row.dataset.lastSyncKey = key;
+      row.innerHTML = `
+        <input class="kv-key mono" value="${escapeAttr(key)}" placeholder="key" />
+        <input class="kv-value mono" value="${escapeAttr(value)}" placeholder="value / null" />
+        <button class="small danger" type="button">删除</button>`;
+      const keyInput = row.querySelector(".kv-key");
+      const valueInput = row.querySelector(".kv-value");
+      keyInput.addEventListener("input", () => syncVllmKvRow(row, "key"));
+      valueInput.addEventListener("input", () => syncVllmKvRow(row, "value"));
+      row.querySelector("button").addEventListener("click", () => {
+        syncVllmKvRow(row, "delete");
+        row.remove();
+      });
+      document.getElementById(targetId).appendChild(row);
+    }
+
+    function getSyncedTargetId(targetId) {
+      if (targetId === "deploy-kv") return "bench-kv";
+      if (targetId === "bench-kv") return "deploy-kv";
+      return null;
+    }
+
+    function findKvRow(targetId, key) {
+      return [...document.querySelectorAll(`#${targetId} .kv-row`)].find(
+        (row) => row.querySelector(".kv-key").value.trim() === key,
+      );
+    }
+
+    function syncVllmKvRow(row, action) {
+      if (syncingVllmKv) return;
+      const sourceTargetId = row.dataset.targetId;
+      const targetId = getSyncedTargetId(sourceTargetId);
+      if (!targetId) return;
+
+      const keyInput = row.querySelector(".kv-key");
+      const valueInput = row.querySelector(".kv-value");
+      const key = keyInput.value.trim();
+      const previousKey = row.dataset.lastSyncKey || "";
+      const keyToDelete = action === "delete" ? key || previousKey : previousKey;
+
+      syncingVllmKv = true;
+      try {
+        if (action === "delete") {
+          if (SYNCED_VLLM_KEYS.has(keyToDelete)) {
+            findKvRow(targetId, keyToDelete)?.remove();
+          }
+          return;
+        }
+
+        if (SYNCED_VLLM_KEYS.has(previousKey) && previousKey !== key) {
+          findKvRow(targetId, previousKey)?.remove();
+        }
+        row.dataset.lastSyncKey = key;
+
+        if (!SYNCED_VLLM_KEYS.has(key)) return;
+
+        let targetRow = findKvRow(targetId, key);
+        if (!targetRow) {
+          addKvRow(targetId, key, valueInput.value);
+          targetRow = findKvRow(targetId, key);
+        }
+        if (targetRow) {
+          targetRow.querySelector(".kv-key").value = key;
+          targetRow.querySelector(".kv-value").value = valueInput.value;
+          targetRow.dataset.lastSyncKey = key;
+        }
+      } finally {
+        syncingVllmKv = false;
+      }
+    }
+
+    function renderKv(targetId, data) {
+      const target = document.getElementById(targetId);
+      target.innerHTML = "";
+      const entries = Object.entries(data || {});
+      entries.forEach(([key, value]) => addKvRow(targetId, key, formatValue(value)));
+    }
+
+    function readKv(targetId) {
+      const out = {};
+      document.querySelectorAll("#" + targetId + " .kv-row").forEach((row) => {
+        const key = row.querySelector(".kv-key").value.trim();
+        if (key) out[key] = parseValue(row.querySelector(".kv-value").value);
+      });
+      return out;
+    }
+
+    function addDevice(value = "") {
+      const row = document.createElement("div");
+      row.className = "list-row";
+      row.innerHTML = `
+        <input class="device-input mono" value="${escapeAttr(value)}" placeholder="/dev/dri/renderD128" />
+        <button class="small danger" type="button">删除</button>`;
+      row.querySelector("button").addEventListener("click", () => row.remove());
+      document.getElementById("devices-list").appendChild(row);
+    }
+
+    function addMount(target = "", source = "", type = "bind") {
+      const row = document.createElement("div");
+      row.className = "pair-row";
+      row.dataset.type = type;
+      row.innerHTML = `
+        <input class="mount-source mono" value="${escapeAttr(source)}" placeholder="host path" />
+        <input class="mount-target mono" value="${escapeAttr(target)}" placeholder="container path" />
+        <button class="small danger" type="button">删除</button>`;
+      row.querySelector("button").addEventListener("click", () => row.remove());
+      document.getElementById("mounts-list").appendChild(row);
+    }
+
+    function addEnv(key = "", value = "") {
+      const row = document.createElement("div");
+      row.className = "pair-row";
+      row.innerHTML = `
+        <input class="env-key mono" value="${escapeAttr(key)}" placeholder="KEY" />
+        <input class="env-value mono" value="${escapeAttr(value)}" placeholder="value" />
+        <button class="small danger" type="button">删除</button>`;
+      row.querySelector("button").addEventListener("click", () => row.remove());
+      document.getElementById("env-list").appendChild(row);
+    }
+
+    function readList(selector) {
+      return [...document.querySelectorAll(selector)]
+        .map((input) => input.value.trim())
+        .filter(Boolean);
+    }
+
+    function buildConfig() {
+      const mounts = [...document.querySelectorAll("#mounts-list .pair-row")]
+        .map((row) => ({
+          target: row.querySelector(".mount-target").value.trim(),
+          source: row.querySelector(".mount-source").value.trim(),
+          type: row.dataset.type || "bind",
+        }))
+        .filter((mount) => mount.target && mount.source);
+
+      const envVars = {};
+      document.querySelectorAll("#env-list .pair-row").forEach((row) => {
+        const key = row.querySelector(".env-key").value.trim();
+        if (key) envVars[key] = row.querySelector(".env-value").value.trim();
+      });
+
+      const devices = readList("#devices-list .device-input");
+
+      return {
+        model_cfg: {
+          model_name: document.getElementById("model_name").value.trim(),
+          model_path: document.getElementById("model_path").value.trim(),
+        },
+        distributed_cfg: currentConfig.distributed_cfg,
+        vllm_deploy_cfg: readKv("deploy-kv"),
+        vllm_bench_cfg: readKv("bench-kv"),
+        profiler_cfg: readKv("profiler-kv"),
+        container_cfg: {
+          image_name: document.getElementById("image_name").value.trim(),
+          image_tag: document.getElementById("image_tag").value.trim(),
+          devices: devices.length ? devices : null,
+          mounts: mounts.length ? mounts : null,
+          env_vars: Object.keys(envVars).length ? envVars : null,
+        },
+      };
+    }
+
+    function fillForm(config) {
+      const effectiveConfig = withDefaults(config || {});
+      const container = effectiveConfig.container_cfg;
+      currentConfig = effectiveConfig;
+      document.getElementById("model_name").value = effectiveConfig.model_cfg.model_name;
+      document.getElementById("model_path").value = effectiveConfig.model_cfg.model_path;
+      document.getElementById("image_name").value = container.image_name || "";
+      document.getElementById("image_tag").value = container.image_tag || "";
+
+      const dist = effectiveConfig.distributed_cfg || {};
+      document.getElementById("dist-num-nodes").textContent = dist.num_nodes ?? "";
+      document.getElementById("dist-ray-port").textContent = dist.ray_port ?? "";
+      document.getElementById("dist-head-node").textContent = dist.head_node ?? "";
+      document.getElementById("dist-worker-nodes").textContent = (dist.worker_nodes || []).join(", ");
+
+      renderKv("deploy-kv", effectiveConfig.vllm_deploy_cfg);
+      renderKv("bench-kv", effectiveConfig.vllm_bench_cfg);
+      renderKv("profiler-kv", effectiveConfig.profiler_cfg);
+
+      document.getElementById("devices-list").innerHTML = "";
+      (container.devices || []).forEach(addDevice);
+
+      document.getElementById("mounts-list").innerHTML = "";
+      (container.mounts || []).forEach((mount) => addMount(mount.target, mount.source, mount.type));
+
+      document.getElementById("env-list").innerHTML = "";
+      Object.entries(container.env_vars || {}).forEach(([key, value]) => addEnv(key, value));
+    }
+
+    async function loadConfig() {
+      const response = await fetch("/api/config");
+      if (!response.ok) throw new Error(await response.text());
+      const data = await readJsonResponse(response, "加载配置失败");
+      fillForm(data.config || data);
+      showToast("配置已加载");
+    }
+
+    async function saveConfig() {
+      const configText = JSON.stringify(buildConfig(), null, 4) + "\n";
+      const blob = new Blob([configText], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      link.href = url;
+      link.download = `vap-config-${timestamp}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showToast("配置已下载到客户端");
+    }
+
+    function isPlainObject(value) {
+      return value !== null && typeof value === "object" && !Array.isArray(value);
+    }
+
+    function assertTruthy(value, message) {
+      if (!value) throw new Error(message);
+    }
+
+    function assertPort(value, label) {
+      if (!Number.isInteger(value) || value < 1 || value > 65535) {
+        throw new Error(`${label} 必须是 1-65535 的整数`);
+      }
+    }
+
+    function assertKvObject(value, label) {
+      if (!isPlainObject(value)) throw new Error(`${label} 必须是对象`);
+      const emptyKeys = Object.keys(value).filter((key) => !key.trim());
+      if (emptyKeys.length) throw new Error(`${label} 存在空 key`);
+    }
+
+    function buildValidationSteps(config) {
+      let resourceCheckPromise = null;
+      const getResourceChecks = () => {
+        if (!resourceCheckPromise) resourceCheckPromise = checkResourcesOnServer(config);
+        return resourceCheckPromise;
+      };
+
+      return [
+        {
+          title: "基础字段",
+          detail: "检查模型名称、模型根目录、Docker 镜像和标签",
+          run: () => {
+            assertTruthy(config.model_cfg?.model_name, "模型名称不能为空");
+            assertTruthy(config.model_cfg?.model_path, "模型根目录不能为空");
+            assertTruthy(config.container_cfg?.image_name, "Docker 镜像不能为空");
+            assertTruthy(config.container_cfg?.image_tag, "Docker 镜像标签不能为空");
+            return `模型 ${config.model_cfg.model_name}，镜像 ${config.container_cfg.image_name}:${config.container_cfg.image_tag}`;
+          },
+        },
+        {
+          title: "vLLM 部署参数",
+          detail: "检查部署参数对象、--host、--port 和端口范围",
+          run: () => {
+            assertKvObject(config.vllm_deploy_cfg, "vLLM 部署参数");
+            assertTruthy(config.vllm_deploy_cfg["--host"], "部署参数缺少 --host");
+            assertPort(config.vllm_deploy_cfg["--port"], "部署参数 --port");
+            return `部署地址 ${config.vllm_deploy_cfg["--host"]}:${config.vllm_deploy_cfg["--port"]}`;
+          },
+        },
+        {
+          title: "vLLM Benchmark 参数",
+          detail: "检查 benchmark 参数对象、--host、--port、endpoint",
+          run: () => {
+            assertKvObject(config.vllm_bench_cfg, "vLLM Benchmark 参数");
+            assertTruthy(config.vllm_bench_cfg["--host"], "Benchmark 参数缺少 --host");
+            assertPort(config.vllm_bench_cfg["--port"], "Benchmark 参数 --port");
+            assertTruthy(config.vllm_bench_cfg["--endpoint"], "Benchmark 参数缺少 --endpoint");
+            return `Benchmark endpoint ${config.vllm_bench_cfg["--endpoint"]}`;
+          },
+        },
+        {
+          title: "部署与 Benchmark 一致性",
+          detail: "检查 deploy/bench 的 host 和 port 是否一致",
+          run: () => {
+            if (config.vllm_deploy_cfg["--host"] !== config.vllm_bench_cfg["--host"]) {
+              throw new Error("部署 --host 必须和 Benchmark --host 一致");
+            }
+            if (config.vllm_deploy_cfg["--port"] !== config.vllm_bench_cfg["--port"]) {
+              throw new Error("部署 --port 必须和 Benchmark --port 一致");
+            }
+            return "deploy 和 bench 使用相同 host/port";
+          },
+        },
+        {
+          title: "本机端口可用性",
+          detail: "检查 vLLM 端口和 Ray 端口是否已被占用",
+          run: async () => {
+            const data = await checkPortsOnServer(config);
+            if (data.valid === false) {
+              const messages = (data.errors || [])
+                .map((error) => `${error.path || "root"}: ${error.message || error}`)
+                .join("\n");
+              throw new Error(messages || "端口检测前配置校验失败");
+            }
+            const blockedPorts = (data.ports || []).filter((port) => !port.available);
+            if (blockedPorts.length) {
+              throw new Error(blockedPorts.map((port) => port.message).join("\n"));
+            }
+            return (data.ports || []).map((port) => `${port.name} ${port.port} 可用`).join("；") || "没有需要检测的端口";
+          },
+        },
+        {
+          title: "模型权重是否存在",
+          detail: "检查模型根目录和完整模型权重路径是否存在",
+          run: async () => {
+            const data = await getResourceChecks();
+            assertResourcePayload(data);
+            const modelChecks = (data.checks || []).filter((check) => check.name.startsWith("模型"));
+            assertChecksOk(modelChecks);
+            return modelChecks.map((check) => `${check.name}: ${check.path}`).join("；");
+          },
+        },
+        {
+          title: "本机 Docker image 是否存在",
+          detail: "检查配置中的 Docker image 是否存在于本机 Docker daemon",
+          run: async () => {
+            const data = await getResourceChecks();
+            assertResourcePayload(data);
+            const imageChecks = (data.checks || []).filter((check) => check.name.includes("Docker image"));
+            assertChecksOk(imageChecks);
+            return imageChecks.map((check) => `${check.image || ""} ${check.message}`).join("；");
+          },
+        },
+        {
+          title: "Profiler 配置",
+          detail: "检查 profiler 必填项和数值类型",
+          run: () => {
+            assertKvObject(config.profiler_cfg, "Profiler 配置");
+            assertTruthy(config.profiler_cfg.profiler, "profiler 不能为空");
+            assertTruthy(config.profiler_cfg.torch_profiler_dir, "torch_profiler_dir 不能为空");
+            ["delay_iterations", "max_iterations"].forEach((key) => {
+              if (!Number.isInteger(config.profiler_cfg[key]) || config.profiler_cfg[key] < 0) {
+                throw new Error(`${key} 必须是非负整数`);
+              }
+            });
+            return `profiler=${config.profiler_cfg.profiler}, max_iterations=${config.profiler_cfg.max_iterations}`;
+          },
+        },
+        {
+          title: "容器设备与挂载",
+          detail: "检查 devices、mounts 的结构和空值",
+          run: () => {
+            const devices = config.container_cfg?.devices || [];
+            const mounts = config.container_cfg?.mounts || [];
+            if (!Array.isArray(devices)) throw new Error("devices 必须是数组或 null");
+            if (!Array.isArray(mounts)) throw new Error("mounts 必须是数组或 null");
+            devices.forEach((device, index) => assertTruthy(device, `devices[${index}] 不能为空`));
+            mounts.forEach((mount, index) => {
+              assertTruthy(mount.source, `mounts[${index}].source 不能为空`);
+              assertTruthy(mount.target, `mounts[${index}].target 不能为空`);
+            });
+            return `${devices.length} 个设备，${mounts.length} 个挂载`;
+          },
+        },
+        {
+          title: "挂载源与设备是否存在",
+          detail: "检查 container devices 和 mounts.source 是否真实存在",
+          run: async () => {
+            const data = await getResourceChecks();
+            assertResourcePayload(data);
+            const ioChecks = (data.checks || []).filter((check) => (
+              check.name.startsWith("设备文件") || check.name.startsWith("挂载源")
+            ));
+            if (!ioChecks.length) return "未配置额外设备或挂载源";
+            assertChecksOk(ioChecks);
+            return ioChecks.map((check) => `${check.name}: ${check.message}`).join("；");
+          },
+        },
+        {
+          title: "环境变量",
+          detail: "检查 env_vars 的 key/value 是否可用",
+          run: () => {
+            const envVars = config.container_cfg?.env_vars || {};
+            if (!isPlainObject(envVars)) throw new Error("env_vars 必须是对象或 null");
+            Object.entries(envVars).forEach(([key, value]) => {
+              assertTruthy(key.trim(), "环境变量 key 不能为空");
+              if (value === null || value === undefined) throw new Error(`${key} 的值不能为空`);
+            });
+            return `${Object.keys(envVars).length} 个环境变量`;
+          },
+        },
+        {
+          title: "分布式配置",
+          detail: "检查只读分布式配置中的节点和 Ray 端口",
+          run: () => {
+            const dist = config.distributed_cfg;
+            if (!dist) return "未启用分布式配置";
+            assertTruthy(dist.head_node, "head_node 不能为空");
+            assertPort(dist.ray_port, "ray_port");
+            if (!Array.isArray(dist.worker_nodes)) throw new Error("worker_nodes 必须是数组");
+            dist.worker_nodes.forEach((node, index) => assertTruthy(node, `worker_nodes[${index}] 不能为空`));
+            if (!Number.isInteger(dist.num_nodes) || dist.num_nodes < 1) {
+              throw new Error("num_nodes 必须是正整数");
+            }
+            return `${dist.num_nodes} 节点，${dist.worker_nodes.length} 个 worker`;
+          },
+        },
+        {
+          title: "分布式机器连通性",
+          detail: "暂不执行网络连通性检测",
+          run: () => {
+            const dist = config.distributed_cfg;
+            if (!dist) return "未启用分布式配置";
+            return {
+              status: "warning",
+              message: "暂不支持分布式机器连通性检测，请人工确认 head/worker 节点和 Ray/SSH 端口可访问。",
+            };
+          },
+        },
+        {
+          title: "后端 Pydantic 模型校验",
+          detail: "调用 Python 后端 VAPConfig 做最终结构校验",
+          run: async () => {
+            const data = await validateConfigOnServer(config);
+            if (data.valid === false) {
+              const messages = (data.errors || [])
+                .map((error) => `${error.path || "root"}: ${error.message || error.msg || error}`)
+                .join("\n");
+              throw new Error(messages || data.message || "后端校验失败");
+            }
+            return data.docker_image || data.summary?.docker_image || data.message || "后端校验通过";
+          },
+        },
+      ];
+    }
+
+    async function checkPortsOnServer(config) {
+      const response = await fetch("/api/check-ports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      const data = await readJsonResponse(response, "端口检测失败");
+      if (!response.ok) throw new Error(data.error || data.message || "端口检测失败");
+      return data;
+    }
+
+    async function checkResourcesOnServer(config) {
+      const response = await fetch("/api/check-resources", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      if (response.status === 404) {
+        throw new Error("资源检测接口不存在，请重启 VAP 配置服务后刷新页面");
+      }
+      const data = await readJsonResponse(response, "资源检测失败");
+      if (!response.ok) throw new Error(data.error || data.message || "资源检测失败");
+      return data;
+    }
+
+    function assertResourcePayload(data) {
+      if (data.valid === false) {
+        const messages = (data.errors || [])
+          .map((error) => `${error.path || "root"}: ${error.message || error}`)
+          .join("\n");
+        throw new Error(messages || "资源检测前配置校验失败");
+      }
+    }
+
+    function assertChecksOk(checks) {
+      const failed = (checks || []).filter((check) => !check.ok);
+      if (failed.length) {
+        throw new Error(failed.map((check) => {
+          const subject = check.path || check.image || "";
+          return `${check.name}: ${check.message}${subject ? ` (${subject})` : ""}`;
+        }).join("\n"));
+      }
+    }
+
+    async function validateConfigOnServer(config) {
+      const response = await fetch("/api/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      if (response.status === 404) {
+        const fallback = await fetch("/api/config/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(config),
+        });
+        const data = await readJsonResponse(fallback, "后端校验失败");
+        if (!fallback.ok) throw new Error(data.error || data.message || "后端校验失败");
+        return data;
+      }
+      const data = await readJsonResponse(response, "后端校验失败");
+      if (!response.ok) throw new Error(data.error || data.message || "后端校验失败");
+      return data;
+    }
+
+    function openValidationModal(steps) {
+      validationList.innerHTML = steps.map((step, index) => `
+        <div class="validation-item" id="validation-step-${index}">
+          <div class="validation-icon">·</div>
+          <div>
+            <div class="validation-title">${escapeAttr(step.title)}</div>
+            <div class="validation-message">${escapeAttr(step.detail)}</div>
+          </div>
+        </div>
+      `).join("");
+      validationSubtitle.textContent = `本次共校验 ${steps.length} 项`;
+      validationSummary.textContent = "校验中...";
+      setValidationProgress(0, steps.length);
+      validationModal.classList.add("show");
+    }
+
+    function setValidationProgress(done, total) {
+      const percent = total ? Math.round((done / total) * 100) : 0;
+      validationProgressText.textContent = `${done} / ${total}`;
+      validationProgressPercent.textContent = `${percent}%`;
+      validationProgressBar.style.width = `${percent}%`;
+    }
+
+    function setValidationStep(index, status, message) {
+      const item = document.getElementById(`validation-step-${index}`);
+      if (!item) return;
+      item.className = `validation-item ${status}`;
+      item.querySelector(".validation-icon").textContent =
+        status === "ok" ? "✓" : (status === "error" || status === "warning") ? "!" : "…";
+      if (message) item.querySelector(".validation-message").textContent = message;
+    }
+
+    function wait(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function validateConfig() {
+      const config = buildConfig();
+      const steps = buildValidationSteps(config);
+      const failures = [];
+      const warnings = [];
+
+      openValidationModal(steps);
+      for (const [index, step] of steps.entries()) {
+        setValidationStep(index, "running", step.detail);
+        try {
+          const result = await step.run();
+          if (result && typeof result === "object" && result.status === "warning") {
+            warnings.push({ title: step.title, message: result.message });
+            setValidationStep(index, "warning", result.message || "暂不支持");
+          } else {
+            setValidationStep(index, "ok", result || "通过");
+          }
+        } catch (error) {
+          failures.push({ title: step.title, message: error.message });
+          setValidationStep(index, "error", error.message);
+        }
+        setValidationProgress(index + 1, steps.length);
+        await wait(120);
+      }
+
+      if (failures.length) {
+        validationSubtitle.textContent = `完成：${steps.length - failures.length} 项通过，${failures.length} 项失败`;
+        validationSummary.textContent = "配置存在问题，请按失败项修改后重新校验。";
+        showToast(`校验失败: ${failures.length} 项未通过`, "error");
+        return;
+      }
+
+      if (warnings.length) {
+        validationSubtitle.textContent = `完成：${steps.length - warnings.length} 项通过，${warnings.length} 项提示`;
+        validationSummary.textContent = "配置校验通过，但存在暂不支持的检查项，请按提示人工确认。";
+        showToast(`校验通过，${warnings.length} 项需人工确认`);
+        return;
+      }
+
+      validationSubtitle.textContent = `完成：${steps.length} 项全部通过`;
+      validationSummary.textContent = "配置校验全部通过，可以继续保存或运行。";
+      showToast("配置校验全部通过");
+    }
+
+    async function pollStatus() {
+      const response = await fetch("/api/run/status");
+      const data = await readJsonResponse(response, "读取运行状态失败");
+      if (!response.ok) throw new Error(data.message || "读取运行状态失败");
+      const vapLogContent = data.logs?.["vap_log.txt"]?.exists
+        ? data.logs["vap_log.txt"].content
+        : (data.output || data.logs?.["vap_log.txt"]?.message || "");
+      logOutput.textContent = vapLogContent;
+      scrollLogToBottom(logOutput);
+      setTensorBoardReady(Boolean(data.running && vapLogContent.includes("TensorBoard started with pid")));
+
+      if (data.running) {
+        setRunState("running", "运行中");
+        startStatusPolling();
+      } else if (data.exit_code !== null && data.exit_code !== undefined) {
+        setRunState(data.exit_code === 0 ? "done" : "error", data.exit_code === 0 ? "完成" : `失败 ${data.exit_code}`);
+        stopStatusPolling();
+      } else {
+        setRunState("", "空闲");
+        stopStatusPolling();
+      }
+      refreshFileLogs();
+    }
+
+    async function runVap() {
+      const config = buildConfig();
+      logOutput.textContent = "";
+      setTensorBoardReady(false);
+      setRunState("running", "启动中");
+      const response = await fetch("/api/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      const data = await readJsonResponse(response, "启动失败");
+      if (!response.ok) {
+        setTensorBoardReady(false);
+        setRunState("error", "启动失败");
+        throw new Error(data.error || data.message || "启动失败");
+      }
+      await pollStatus();
+      startStatusPolling();
+      showToast("VAP 已启动");
+    }
+
+    async function stopVap() {
+      const response = await fetch("/api/run/stop", { method: "POST" });
+      const data = await readJsonResponse(response, "停止失败");
+      showToast(data.message || "已发送停止信号");
+      await pollStatus();
+    }
+
+    function openTensorBoard() {
+      if (btnTensorBoard.disabled) return;
+      const protocol = location.protocol === "https:" ? "https:" : "http:";
+      const url = `${protocol}//${location.hostname}:6006/`;
+      window.open(url, "_blank", "noopener,noreferrer");
+      showToast("已打开 TensorBoard 页面");
+    }
+
+    document.querySelectorAll("[data-add-kv]").forEach((button) => {
+      button.addEventListener("click", () => addKvRow(button.dataset.addKv));
+    });
+    document.getElementById("add-device").addEventListener("click", () => addDevice());
+    document.getElementById("add-mount").addEventListener("click", () => addMount());
+    document.getElementById("add-env").addEventListener("click", () => addEnv());
+    document.querySelectorAll(".config-panel > h2").forEach((heading) => {
+      heading.addEventListener("click", () => openConfigPanel(heading.closest(".config-panel")));
+    });
+    document.querySelectorAll(".config-panel").forEach((panel) => {
+      panel.addEventListener("mouseenter", () => openConfigPanel(panel));
+    });
+    document.querySelectorAll("[data-open-log]").forEach((button) => {
+      button.addEventListener("click", () => openLogPanel(button.dataset.openLog));
+    });
+    document.querySelectorAll("[data-log-panel]").forEach((panel) => {
+      panel.addEventListener("mouseenter", () => openLogPanel(panel.dataset.logPanel));
+    });
+    document.querySelectorAll("[data-copy-log]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        copyLogContent(button.dataset.copyLog).catch((error) => showToast(error.message, "error"));
+      });
+    });
+    document.querySelectorAll("[data-download-log]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        downloadLogContent(button.dataset.downloadLog, button.dataset.fileName);
+      });
+    });
+    btnTheme.addEventListener("click", toggleTheme);
+    document.getElementById("btn-reload").addEventListener("click", () => loadConfig().catch((error) => showToast(error.message, "error")));
+    document.getElementById("btn-save").addEventListener("click", () => saveConfig().catch((error) => showToast(error.message, "error")));
+    document.getElementById("btn-validate").addEventListener("click", () => validateConfig().catch((error) => showToast(error.message, "error")));
+    document.getElementById("btn-run").addEventListener("click", () => runVap().catch((error) => showToast(error.message, "error")));
+    btnTensorBoard.addEventListener("click", openTensorBoard);
+    document.getElementById("btn-stop").addEventListener("click", () => stopVap().catch((error) => showToast(error.message, "error")));
+    document.getElementById("validation-close").addEventListener("click", () => validationModal.classList.remove("show"));
+    document.getElementById("validation-ok").addEventListener("click", () => validationModal.classList.remove("show"));
+    validationModal.addEventListener("click", (event) => {
+      if (event.target === validationModal) validationModal.classList.remove("show");
+    });
+
+    applyTheme(getCurrentTheme());
+    initLayoutSplitter();
+    loadConfig().catch((error) => {
+      showToast("加载配置失败: " + error.message, "error");
+      fillForm({});
+    });
+    pollStatus();
+  </script>
+</body>
+</html>

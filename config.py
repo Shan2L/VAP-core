@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
 from pydantic import BaseModel
 import os
 
@@ -11,7 +11,7 @@ class ModelConfig(BaseModel):
 class DistributedConfig(BaseModel):
     num_nodes: int
     ray_port: int
-    head_node: str
+    head_node: Literal["localhost"]
     worker_nodes: List[str]
 
 

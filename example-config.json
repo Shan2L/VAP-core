@@ -1,0 +1,81 @@
+{
+    "model_cfg": {
+        "model_name": "Qwen3-0.6B",
+        "model_path": "/home/DomainUsers/syliu"
+    },
+
+
+   "distributed_cfg": {
+       "num_nodes": 2,
+       "ray_port": 6379,
+       "head_node": "localhost",
+       "worker_nodes": ["cse-ai-10.amd.com", "cse-ai-amd.com"]
+   },
+
+
+    "container_cfg": {
+        "image_name": "mkmhub.amd.com/sw-cserocmopt-dev/release/wuxi_w7800/vllm0.16.0_pytorch2.9.1_rocm7.2",
+        "image_tag": "20260311",
+        "devices": [
+            "/dev/dri/renderD134",
+            "/dev/dri/renderD135"
+        ],
+        "mounts": [
+            {
+                "target": "/home/sylvan",
+                "source": "/home/DomainUsers/syliu"
+            }
+        ],
+        "env_vars": {
+            "VLLM_USE_TRITON_FLASH_ATTN": "1",      
+            "PYTORCH_TUNABLEOP_ENABLED": "0",
+            "PYTORCH_TUNABLEOP_TUNING": "0",
+            "PYTORCH_TUNABLEOP_VERBOSE": "0",
+            "PYTHONPATH": "/opt/rocm/lib",
+            "NCCL_P2P_DISABLE": "1",
+            "VLLM_WORKER_MULTIPROC_METHOD": "spawn",
+            "VLLM_MLA_DISABLE": "1",
+            "NCCL_DEBUG": "VERSION"
+        }
+    },
+
+
+   "vllm_deploy_cfg": {
+        "--host": "0.0.0.0",
+        "--port": 8080,
+        "--trust-remote-code": null,
+        "--no-enable-chunked-prefill": null,
+        "--no-enable-prefix-caching": null,
+        "--gpu-memory-utilization": 0.9,
+        "--max-model-len": 32768,
+        "-tp": 2
+   },
+
+
+   "profiler_cfg": {
+        "profiler": "torch",
+        "torch_profiler_dir": "/app/VAP/log/vllm-profile",
+        "torch_profiler_record_shapes": true,
+        "torch_profiler_with_stack": false,
+        "torch_profiler_with_memory": true,
+        "torch_profiler_with_flops": false,
+        "torch_profiler_use_gzip": true,
+        "delay_iterations": 0,
+        "max_iterations": 10
+    },
+
+
+   "vllm_bench_cfg": {
+        "--backend": "vllm",
+        "--host": "0.0.0.0",
+        "--port": 8080,
+        "--endpoint": "/v1/completions",
+        "--ignore-eos": null,
+        "--dataset-name": "random",
+        "--random-input-len": 2048,
+        "--random-output-len": 128,
+        "--max-concurrency": 32,
+        "--num-prompts": 64,
+        "--request-rate": "inf"
+   }
+}
