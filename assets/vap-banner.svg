@@ -1,0 +1,52 @@
+<svg width="1200" height="360" viewBox="0 0 1200 360" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">VAP</title>
+  <desc id="desc">Cyberpunk neon banner for VAP, a vLLM profiling control plane.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#05030f"/>
+      <stop offset="0.46" stop-color="#101a4a"/>
+      <stop offset="1" stop-color="#2d063d"/>
+    </linearGradient>
+    <linearGradient id="neon" x1="214" y1="71" x2="982" y2="243" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22d3ee"/>
+      <stop offset="0.45" stop-color="#8b5cf6"/>
+      <stop offset="1" stop-color="#fb2f92"/>
+    </linearGradient>
+    <radialGradient id="cyanGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(241 82) rotate(33.8) scale(366 198)">
+      <stop stop-color="#22d3ee" stop-opacity="0.46"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="pinkGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(963 262) rotate(157.4) scale(389 217)">
+      <stop stop-color="#fb2f92" stop-opacity="0.44"/>
+      <stop offset="1" stop-color="#fb2f92" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softGlow" x="-25%" y="-45%" width="150%" height="190%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.13 0 0 0 0 0.82 0 0 0 0 0.93 0 0 0 0.9 0" result="cyan"/>
+      <feMerge>
+        <feMergeNode in="cyan"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M44 0H0V44" stroke="#40E7FF" stroke-opacity="0.13" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="360" rx="28" fill="url(#bg)"/>
+  <rect width="1200" height="360" rx="28" fill="url(#cyanGlow)"/>
+  <rect width="1200" height="360" rx="28" fill="url(#pinkGlow)"/>
+  <rect x="18" y="18" width="1164" height="324" rx="22" fill="url(#grid)" opacity="0.72"/>
+  <path d="M90 266L231 94H396L532 266H640L781 94H946L1110 266" stroke="url(#neon)" stroke-width="3" stroke-linecap="round" stroke-opacity="0.82"/>
+  <path d="M80 284H1120" stroke="#22d3ee" stroke-opacity="0.35"/>
+  <path d="M150 304H488" stroke="#fb2f92" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round"/>
+  <path d="M712 304H1050" stroke="#22d3ee" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round"/>
+  <g filter="url(#softGlow)">
+    <text x="600" y="181" text-anchor="middle" font-family="Inter, Orbitron, Rajdhani, Arial, sans-serif" font-size="116" font-weight="900" letter-spacing="24" fill="url(#neon)">VAP</text>
+  </g>
+  <text x="600" y="226" text-anchor="middle" font-family="Inter, Rajdhani, Arial, sans-serif" font-size="25" font-weight="700" letter-spacing="5" fill="#DDFBFF">NEON CONTROL PLANE FOR VLLM PROFILING</text>
+  <text x="600" y="265" text-anchor="middle" font-family="Inter, Rajdhani, Arial, sans-serif" font-size="18" font-weight="600" letter-spacing="3" fill="#A7F3FF" opacity="0.9">DEPLOY / BENCHMARK / PROFILE / TRACE / VISUALIZE</text>
+  <circle cx="94" cy="78" r="6" fill="#22d3ee"/>
+  <circle cx="1106" cy="78" r="6" fill="#fb2f92"/>
+  <circle cx="94" cy="282" r="6" fill="#8b5cf6"/>
+  <circle cx="1106" cy="282" r="6" fill="#22d3ee"/>
+</svg>

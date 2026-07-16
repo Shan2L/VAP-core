@@ -1,6 +1,8 @@
-# VAP-core
+<p align="center">
+  <img src="assets/vap-banner.svg" alt="VAP - Neon Control Plane for vLLM Profiling" width="100%" />
+</p>
 
-VAP-core is a lightweight tool for deploying a vLLM service, running benchmark workloads, collecting profiler output, and viewing run logs through a simple web UI.
+VAP is a lightweight tool for deploying a vLLM service, running benchmark workloads, collecting profiler output, and viewing run logs through a simple web UI.
 
 The project includes:
 
