@@ -7,7 +7,6 @@ import uuid
 from dataclasses import dataclass
 from typing import Any, Callable
 
-
 AGENT_BASE_URL = os.getenv("VAP_LLM_BASE_URL", "https://llm-api.amd.com/OpenAI")
 AGENT_MODEL = os.getenv("VAP_LLM_MODEL", "gpt-5.5")
 AGENT_ENV_KEY_NAME = "VAP_LLM_SUBSCRIPTION_KEY"
@@ -116,7 +115,9 @@ class VAPAgentRuntime:
             raise ValueError("Agent is locked. Provide a subscription key first.")
 
         messages = self.normalize_messages(payload.get("messages"))
-        max_completion_tokens = self._parse_max_tokens(payload.get("max_completion_tokens", 700))
+        max_completion_tokens = self._parse_max_tokens(
+            payload.get("max_completion_tokens", 700)
+        )
         client = self._create_client(subscription_key)
         loop_messages: list[dict[str, Any]] = [
             {"role": "system", "content": self._system_prompt()},
@@ -172,7 +173,11 @@ class VAPAgentRuntime:
                 else:
                     result = self._execute_tool(tool, arguments)
                     tool_events.append(
-                        {"tool_name": tool_name, "arguments": arguments, "result": result}
+                        {
+                            "tool_name": tool_name,
+                            "arguments": arguments,
+                            "result": result,
+                        }
                     )
                 loop_messages.append(
                     {
@@ -202,7 +207,9 @@ class VAPAgentRuntime:
             raise ValueError("Agent is locked. Provide a subscription key first.")
 
         messages = self.normalize_messages(payload.get("messages"))
-        max_completion_tokens = self._parse_max_tokens(payload.get("max_completion_tokens", 700))
+        max_completion_tokens = self._parse_max_tokens(
+            payload.get("max_completion_tokens", 700)
+        )
         client = self._create_client(subscription_key)
         loop_messages: list[dict[str, Any]] = [
             {"role": "system", "content": self._system_prompt()},
@@ -248,7 +255,9 @@ class VAPAgentRuntime:
                         if getattr(function_delta, "arguments", None):
                             record["function"]["arguments"] += function_delta.arguments
 
-            tool_calls = [tool_calls_by_index[index] for index in sorted(tool_calls_by_index)]
+            tool_calls = [
+                tool_calls_by_index[index] for index in sorted(tool_calls_by_index)
+            ]
             if not tool_calls:
                 yield {
                     "type": "done",
@@ -267,7 +276,9 @@ class VAPAgentRuntime:
             )
             for tool_call in tool_calls:
                 tool_name = tool_call["function"]["name"]
-                arguments = self._parse_tool_arguments(tool_call["function"]["arguments"])
+                arguments = self._parse_tool_arguments(
+                    tool_call["function"]["arguments"]
+                )
                 tool = self._tools.get(tool_name)
                 if tool is None:
                     result = {"ok": False, "message": f"Unknown tool: {tool_name}"}
@@ -323,7 +334,9 @@ class VAPAgentRuntime:
         with self._lock:
             action = self._pending_actions.pop(approval_id, None)
         if action is None:
-            raise ValueError("Approval request was not found or has already been handled.")
+            raise ValueError(
+                "Approval request was not found or has already been handled."
+            )
         tool = self._tools.get(action.tool_name)
         if tool is None:
             raise ValueError(f"Tool no longer exists: {action.tool_name}")
@@ -345,7 +358,9 @@ class VAPAgentRuntime:
         with self._lock:
             action = self._pending_actions.pop(approval_id, None)
         if action is None:
-            raise ValueError("Approval request was not found or has already been handled.")
+            raise ValueError(
+                "Approval request was not found or has already been handled."
+            )
         return {
             "type": "action_cancelled",
             "message": {
@@ -377,7 +392,9 @@ class VAPAgentRuntime:
         try:
             import openai
         except ImportError as exc:
-            raise RuntimeError("OpenAI SDK is not installed. Run install.sh again.") from exc
+            raise RuntimeError(
+                "OpenAI SDK is not installed. Run install.sh again."
+            ) from exc
 
         return openai.OpenAI(
             base_url=AGENT_BASE_URL,
@@ -428,7 +445,9 @@ class VAPAgentRuntime:
             self._pending_actions[action.approval_id] = action
         return action
 
-    def _execute_tool(self, tool: AgentTool, arguments: dict[str, Any]) -> dict[str, Any]:
+    def _execute_tool(
+        self, tool: AgentTool, arguments: dict[str, Any]
+    ) -> dict[str, Any]:
         try:
             return {"ok": True, "data": tool.handler(arguments)}
         except Exception as exc:

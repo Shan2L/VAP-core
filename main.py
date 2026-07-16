@@ -282,15 +282,15 @@ def collect_pytorch_trace_files(profile_dir: str) -> list[str]:
     for pattern in patterns:
         traces.extend(glob.glob(os.path.join(profile_dir, pattern)))
     traces = [
-        trace
-        for trace in traces
-        if "merged_trace" not in os.path.basename(trace)
+        trace for trace in traces if "merged_trace" not in os.path.basename(trace)
     ]
     return sorted(dict.fromkeys(traces))
 
 
 def safe_filename_part(value: str) -> str:
-    return "".join(ch if ch.isalnum() or ch in ("-", "_", ".") else "_" for ch in value).strip("_")
+    return "".join(
+        ch if ch.isalnum() or ch in ("-", "_", ".") else "_" for ch in value
+    ).strip("_")
 
 
 def merged_trace_output_file(profile_dir: str, config: VAPConfig) -> str:
@@ -300,7 +300,9 @@ def merged_trace_output_file(profile_dir: str, config: VAPConfig) -> str:
     return os.path.join(profile_dir, f"{prefix}-merged_trace.json")
 
 
-def merge_pytorch_traces_for_perfetto(profile_dir: str, config: VAPConfig) -> str | None:
+def merge_pytorch_traces_for_perfetto(
+    profile_dir: str, config: VAPConfig
+) -> str | None:
     trace_files = collect_pytorch_trace_files(profile_dir)
     if not trace_files:
         return None

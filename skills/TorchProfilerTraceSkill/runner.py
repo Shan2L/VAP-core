@@ -13,7 +13,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 QUERY_FILE = Path(__file__).with_name("queries.yaml")
 
 
@@ -31,7 +30,9 @@ def load_queries() -> dict[str, str]:
             current_lines = []
             continue
         if current_name is not None:
-            current_lines.append(raw_line[2:] if raw_line.startswith("  ") else raw_line)
+            current_lines.append(
+                raw_line[2:] if raw_line.startswith("  ") else raw_line
+            )
     if current_name is not None:
         queries[current_name] = current_lines
     return {name: "\n".join(lines).strip() for name, lines in queries.items()}
@@ -51,7 +52,9 @@ def find_trace_processor() -> str:
     return "trace_processor"
 
 
-def run_query(trace_processor: str, trace: Path, sql: str) -> subprocess.CompletedProcess[str]:
+def run_query(
+    trace_processor: str, trace: Path, sql: str
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [trace_processor, "query", str(trace), sql],
         text=True,
@@ -63,7 +66,9 @@ def run_query(trace_processor: str, trace: Path, sql: str) -> subprocess.Complet
 
 def main() -> int:
     queries = load_queries()
-    parser = argparse.ArgumentParser(description="Run TorchProfilerTraceSkill SQL presets.")
+    parser = argparse.ArgumentParser(
+        description="Run TorchProfilerTraceSkill SQL presets."
+    )
     parser.add_argument("--trace", required=True, type=Path)
     parser.add_argument("--query", choices=sorted(queries))
     parser.add_argument("--all", action="store_true")
@@ -90,7 +95,9 @@ def main() -> int:
             print(completed.stderr.rstrip(), file=sys.stderr)
         if completed.returncode != 0:
             exit_code = completed.returncode
-            print(f"Query failed with exit code {completed.returncode}", file=sys.stderr)
+            print(
+                f"Query failed with exit code {completed.returncode}", file=sys.stderr
+            )
             if not args.all:
                 break
     return exit_code

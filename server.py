@@ -1018,14 +1018,19 @@ def force_kill_process_group_later(
 
 def process_cmdline(pid: int) -> str:
     try:
-        return Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\0", b" ").decode(
-            errors="replace"
+        return (
+            Path(f"/proc/{pid}/cmdline")
+            .read_bytes()
+            .replace(b"\0", b" ")
+            .decode(errors="replace")
         )
     except OSError:
         return ""
 
 
-def terminate_recorded_visualization_pids(run_dir: Path | None, timeout_sec: float = 3.0) -> None:
+def terminate_recorded_visualization_pids(
+    run_dir: Path | None, timeout_sec: float = 3.0
+) -> None:
     if run_dir is None:
         return
     pid_file = (run_dir / "visualization_pids.json").resolve()
@@ -1048,7 +1053,9 @@ def terminate_recorded_visualization_pids(run_dir: Path | None, timeout_sec: flo
         if not cmdline:
             continue
         if "tensorboard" not in cmdline and "trace_processor" not in cmdline:
-            print(f"Skip cleanup for pid {pid}; command is not a VAP visualization process")
+            print(
+                f"Skip cleanup for pid {pid}; command is not a VAP visualization process"
+            )
             continue
         try:
             os.kill(pid, signal.SIGTERM)
@@ -1127,7 +1134,9 @@ def stop_vap_run() -> dict[str, Any]:
     }
 
 
-def object_schema(properties: dict[str, Any] | None = None, required: list[str] | None = None) -> dict[str, Any]:
+def object_schema(
+    properties: dict[str, Any] | None = None, required: list[str] | None = None
+) -> dict[str, Any]:
     return {
         "type": "object",
         "properties": properties or {},
@@ -1158,13 +1167,19 @@ def inspect_latest_trace(args: dict[str, Any]) -> dict[str, Any]:
         run_dir = resolve_profile_archive_run_dir(raw_run_dir)
     else:
         snapshot = get_run_state_snapshot()
-        run_dir = Path(snapshot["run_dir"]).resolve() if snapshot["run_dir"] else latest_log_run_dir()
+        run_dir = (
+            Path(snapshot["run_dir"]).resolve()
+            if snapshot["run_dir"]
+            else latest_log_run_dir()
+        )
     if run_dir is None:
         raise ValueError("No run directory is available yet")
 
     profile_dir = (run_dir / "vllm-profile").resolve()
     if not profile_dir.is_dir() or not profile_dir.is_relative_to(LOGS_DIR.resolve()):
-        raise ValueError("The latest run has not generated a vllm-profile directory yet")
+        raise ValueError(
+            "The latest run has not generated a vllm-profile directory yet"
+        )
 
     files = sorted([path for path in profile_dir.rglob("*") if path.is_file()])
     if not files:
@@ -1192,10 +1207,14 @@ def inspect_latest_trace(args: dict[str, Any]) -> dict[str, Any]:
         "trace_path": str(trace_path),
         "trace_file": trace_path.name,
         "size_bytes": stat.st_size,
-        "modified_at": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(stat.st_mtime)),
+        "modified_at": time.strftime(
+            "%Y-%m-%d %H:%M:%S", time.localtime(stat.st_mtime)
+        ),
         "candidate_count": len(files),
         "candidates": [path.name for path in sorted(files, key=score)[:10]],
-        "looks_merged": trace_path.name.lower().startswith(("merged_trace", "merge_trace")),
+        "looks_merged": trace_path.name.lower().startswith(
+            ("merged_trace", "merge_trace")
+        ),
         "summary": summary,
         "diagnosis": build_trace_diagnosis(summary),
     }
@@ -1314,7 +1333,9 @@ def load_skill_queries(skill_dir: Path = TORCHPROFILER_SKILL_DIR) -> dict[str, s
             current_lines = []
             continue
         if current_name is not None:
-            current_lines.append(raw_line[2:] if raw_line.startswith("  ") else raw_line)
+            current_lines.append(
+                raw_line[2:] if raw_line.startswith("  ") else raw_line
+            )
     if current_name is not None:
         queries[current_name] = current_lines
     parsed = {name: "\n".join(lines).strip() for name, lines in queries.items()}
@@ -1342,7 +1363,11 @@ def torchprofiler_skill_workflows() -> dict[str, list[str]]:
 
 
 def trace_processor_path() -> Path:
-    candidates = [VAP_BIN_DIR / "trace_processor", APP_DIR / "bin" / "trace_processor", APP_DIR / "trace_processor"]
+    candidates = [
+        VAP_BIN_DIR / "trace_processor",
+        APP_DIR / "bin" / "trace_processor",
+        APP_DIR / "trace_processor",
+    ]
     for candidate in candidates:
         if candidate.is_file() and os.access(candidate, os.X_OK):
             return candidate
@@ -1354,8 +1379,7 @@ def run_perfetto_sql(args: dict[str, Any]) -> dict[str, Any]:
     query_name = str(args.get("query_name") or "top_slices")
     if query_name not in queries:
         raise ValueError(
-            "Unsupported query_name. Use one of: "
-            + ", ".join(sorted(queries))
+            "Unsupported query_name. Use one of: " + ", ".join(sorted(queries))
         )
     limit = args.get("limit", 20)
     if not isinstance(limit, int) or limit < 1 or limit > 100:
@@ -1390,7 +1414,11 @@ def run_perfetto_sql(args: dict[str, Any]) -> dict[str, Any]:
     if completed.returncode != 0:
         raise ValueError(
             "Perfetto SQL query failed: "
-            + (completed.stderr.strip() or completed.stdout.strip() or f"exit {completed.returncode}")
+            + (
+                completed.stderr.strip()
+                or completed.stdout.strip()
+                or f"exit {completed.returncode}"
+            )
         )
     return {
         "query_name": query_name,
@@ -1421,7 +1449,8 @@ def run_torchprofiler_skill(args: dict[str, Any]) -> dict[str, Any]:
                     "result": run_perfetto_sql(
                         {
                             "query_name": query_name,
-                            "preferred_name": args.get("preferred_name") or "merged_trace",
+                            "preferred_name": args.get("preferred_name")
+                            or "merged_trace",
                             "run_dir": args.get("run_dir"),
                             "limit": limit,
                         }
@@ -1440,7 +1469,10 @@ def run_torchprofiler_skill(args: dict[str, Any]) -> dict[str, Any]:
 
 def build_trace_diagnosis(summary: dict[str, Any]) -> dict[str, Any]:
     if not summary.get("available"):
-        return {"available": False, "findings": [summary.get("message", "Trace summary is unavailable")]}
+        return {
+            "available": False,
+            "findings": [summary.get("message", "Trace summary is unavailable")],
+        }
 
     findings: list[str] = []
     next_steps: list[str] = []
@@ -1451,26 +1483,51 @@ def build_trace_diagnosis(summary: dict[str, Any]) -> dict[str, Any]:
         if isinstance(item, dict)
     }
     longest = summary.get("longest_events", [])
-    longest_names = [str(item.get("name", "")) for item in longest if isinstance(item, dict)]
+    longest_names = [
+        str(item.get("name", "")) for item in longest if isinstance(item, dict)
+    ]
 
-    if duration_categories.get("cuda_runtime", 0) > duration_categories.get("kernel", 0) * 10:
-        findings.append("cuda_runtime duration is much larger than kernel duration; synchronization or launch overhead may dominate the trace.")
-        hypotheses.append("Inspect hipEventSynchronize and hipLaunchKernel spans for blocking waits, serialized work, or host-side scheduling gaps.")
+    if (
+        duration_categories.get("cuda_runtime", 0)
+        > duration_categories.get("kernel", 0) * 10
+    ):
+        findings.append(
+            "cuda_runtime duration is much larger than kernel duration; synchronization or launch overhead may dominate the trace."
+        )
+        hypotheses.append(
+            "Inspect hipEventSynchronize and hipLaunchKernel spans for blocking waits, serialized work, or host-side scheduling gaps."
+        )
     if any("hipEventSynchronize" in name for name in longest_names):
-        findings.append("The longest events include hipEventSynchronize, which often points to host waiting for GPU completion or synchronization barriers.")
-        next_steps.append("In Perfetto, focus on hipEventSynchronize regions and check what GPU work precedes each wait.")
+        findings.append(
+            "The longest events include hipEventSynchronize, which often points to host waiting for GPU completion or synchronization barriers."
+        )
+        next_steps.append(
+            "In Perfetto, focus on hipEventSynchronize regions and check what GPU work precedes each wait."
+        )
     if any("aten::sort" in name for name in longest_names):
-        findings.append("The longest CPU ops include aten::sort across ranks; sampling/top-k/sorting work may be a decode bottleneck.")
-        hypotheses.append("Review sampling settings and decode path; compare whether aten::sort aligns with token generation steps.")
+        findings.append(
+            "The longest CPU ops include aten::sort across ranks; sampling/top-k/sorting work may be a decode bottleneck."
+        )
+        hypotheses.append(
+            "Review sampling settings and decode path; compare whether aten::sort aligns with token generation steps."
+        )
 
-    ranks = [(rank, count) for rank, count in summary.get("events_by_rank", []) if rank != "unknown"]
+    ranks = [
+        (rank, count)
+        for rank, count in summary.get("events_by_rank", [])
+        if rank != "unknown"
+    ]
     if ranks:
         counts = [count for _, count in ranks]
         if max(counts) - min(counts) > max(counts) * 0.10:
-            findings.append("Event counts differ noticeably across ranks; possible rank imbalance.")
+            findings.append(
+                "Event counts differ noticeably across ranks; possible rank imbalance."
+            )
         else:
             findings.append("Rank event counts look roughly balanced.")
-        next_steps.append("In Perfetto, compare rank lanes for idle gaps, long waits, and whether decode steps align across ranks.")
+        next_steps.append(
+            "In Perfetto, compare rank lanes for idle gaps, long waits, and whether decode steps align across ranks."
+        )
 
     next_steps.extend(
         [
@@ -1491,16 +1548,23 @@ def build_trace_diagnosis(summary: dict[str, Any]) -> dict[str, Any]:
 def summarize_trace_file(trace_path: Path) -> dict[str, Any]:
     try:
         if trace_path.suffix == ".gz":
-            with gzip.open(trace_path, "rt", encoding="utf-8", errors="replace") as trace_file:
+            with gzip.open(
+                trace_path, "rt", encoding="utf-8", errors="replace"
+            ) as trace_file:
                 payload = json.load(trace_file)
         else:
-            payload = json.loads(trace_path.read_text(encoding="utf-8", errors="replace"))
+            payload = json.loads(
+                trace_path.read_text(encoding="utf-8", errors="replace")
+            )
     except Exception as exc:
         return {"available": False, "message": f"Failed to parse trace JSON: {exc}"}
 
     events = payload.get("traceEvents") if isinstance(payload, dict) else None
     if not isinstance(events, list):
-        return {"available": False, "message": "Trace JSON does not contain traceEvents"}
+        return {
+            "available": False,
+            "message": "Trace JSON does not contain traceEvents",
+        }
 
     category_counts: Counter[str] = Counter()
     rank_counts: Counter[str] = Counter()
@@ -1548,7 +1612,11 @@ def summarize_trace_file(trace_path: Path) -> dict[str, Any]:
     return {
         "available": True,
         "event_count": len(events),
-        "time_span_us": round(max_ts - min_ts, 3) if min_ts is not None and max_ts is not None else None,
+        "time_span_us": (
+            round(max_ts - min_ts, 3)
+            if min_ts is not None and max_ts is not None
+            else None
+        ),
         "top_categories_by_count": category_counts.most_common(12),
         "top_categories_by_duration_us": sorted(
             (
@@ -1574,7 +1642,9 @@ def prepare_download_artifact(args: dict[str, Any]) -> dict[str, Any]:
         file_name = log_names[artifact]
         log_info = read_current_log_file(file_name)
         if not log_info.get("exists"):
-            raise ValueError(str(log_info.get("message") or f"{file_name} does not exist"))
+            raise ValueError(
+                str(log_info.get("message") or f"{file_name} does not exist")
+            )
         return {
             "artifact": artifact,
             "label": file_name,
@@ -1592,7 +1662,9 @@ def prepare_download_artifact(args: dict[str, Any]) -> dict[str, Any]:
             "download_url": f"/api/profile/archive{query}",
             "content_type": "application/zip",
         }
-    raise ValueError("Unsupported artifact. Use vap_log, vllm_deploy_log, vllm_bench_log, or trace_archive.")
+    raise ValueError(
+        "Unsupported artifact. Use vap_log, vllm_deploy_log, vllm_bench_log, or trace_archive."
+    )
 
 
 def get_agent_runtime() -> VAPAgentRuntime:
@@ -1653,7 +1725,9 @@ def register_vap_agent_tools(runtime: VAPAgentRuntime) -> None:
             description="Validate a VAP config payload. If config is omitted, validate the saved config.",
             safety="safe",
             parameters=object_schema({"config": {"type": "object"}}),
-            handler=lambda args: validate_config_payload(args.get("config") or current_config_payload()),
+            handler=lambda args: validate_config_payload(
+                args.get("config") or current_config_payload()
+            ),
         )
     )
     runtime.register_tool(
@@ -1662,7 +1736,9 @@ def register_vap_agent_tools(runtime: VAPAgentRuntime) -> None:
             description="Check local VAP service ports. If config is omitted, use the saved config.",
             safety="safe",
             parameters=object_schema({"config": {"type": "object"}}),
-            handler=lambda args: check_config_ports(args.get("config") or current_config_payload()),
+            handler=lambda args: check_config_ports(
+                args.get("config") or current_config_payload()
+            ),
         )
     )
     runtime.register_tool(
@@ -1671,7 +1747,9 @@ def register_vap_agent_tools(runtime: VAPAgentRuntime) -> None:
             description="Check model paths, Docker image, devices, and mount sources.",
             safety="safe",
             parameters=object_schema({"config": {"type": "object"}}),
-            handler=lambda args: check_config_resources(args.get("config") or current_config_payload()),
+            handler=lambda args: check_config_resources(
+                args.get("config") or current_config_payload()
+            ),
         )
     )
     runtime.register_tool(
@@ -1763,7 +1841,12 @@ def register_vap_agent_tools(runtime: VAPAgentRuntime) -> None:
                 {
                     "artifact": {
                         "type": "string",
-                        "enum": ["vap_log", "vllm_deploy_log", "vllm_bench_log", "trace_archive"],
+                        "enum": [
+                            "vap_log",
+                            "vllm_deploy_log",
+                            "vllm_bench_log",
+                            "trace_archive",
+                        ],
                     }
                 },
                 ["artifact"],
@@ -1777,7 +1860,9 @@ def register_vap_agent_tools(runtime: VAPAgentRuntime) -> None:
             description="Validate whether a config is ready to run without starting VAP.",
             safety="safe",
             parameters=object_schema({"config": {"type": "object"}}),
-            handler=lambda args: validate_config_payload(args.get("config") or current_config_payload()),
+            handler=lambda args: validate_config_payload(
+                args.get("config") or current_config_payload()
+            ),
         )
     )
     runtime.register_tool(
@@ -1787,7 +1872,9 @@ def register_vap_agent_tools(runtime: VAPAgentRuntime) -> None:
             safety="requires_approval",
             parameters=object_schema({"config": {"type": "object"}}),
             handler=lambda args: start_vap_run(
-                save_temp_config(args["config"]) if isinstance(args.get("config"), dict) else None
+                save_temp_config(args["config"])
+                if isinstance(args.get("config"), dict)
+                else None
             ),
         )
     )
@@ -2011,7 +2098,9 @@ class VAPConfigHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
         def send_event(event: dict[str, Any]) -> None:
-            content = f"data: {json.dumps(event, ensure_ascii=False)}\n\n".encode("utf-8")
+            content = f"data: {json.dumps(event, ensure_ascii=False)}\n\n".encode(
+                "utf-8"
+            )
             self.wfile.write(content)
             self.wfile.flush()
 
