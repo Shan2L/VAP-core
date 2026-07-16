@@ -62,9 +62,9 @@ def setup_logging(log_path: str, debug: bool = False) -> logging.Logger:
         datefmt="%Y-%m-%d %H:%M:%S",
         handlers=[
             logging.FileHandler(log_file, encoding="utf-8"),
-            logging.StreamHandler(),  # 同时打到终端
+            logging.StreamHandler(),  # Also log to terminal
         ],
-        force=True,  # Python 3.8+，重复调用会覆盖旧配置
+        force=True,  # Python 3.8+: repeated calls replace the old config
     )
     return logging.getLogger("VAP")
 

@@ -1,7 +1,7 @@
 {
     "model_cfg": {
-        "model_name": "Qwen3-0.6B",
-        "model_path": "/home/DomainUsers/syliu"
+        "model_name": "Qwen/Qwen3-0.6B",
+        "model_path": "/home/home/nfs_share/huggingface/"
     },
 
 
@@ -24,6 +24,10 @@
             {
                 "target": "/home/sylvan",
                 "source": "/home/DomainUsers/syliu"
+            },
+            {
+                "target": "/home/nfs_share/huggingface/",
+                "source": "/home/nfs_share/huggingface/"
             }
         ],
         "env_vars": {

@@ -49,18 +49,18 @@ def validate_config_payload(payload: dict[str, Any]) -> dict[str, Any]:
         if runtime_errors:
             return {
                 "valid": False,
-                "message": "配置校验失败。",
+                "message": "Config validation failed.",
                 "errors": runtime_errors,
             }
         return {
             "valid": True,
-            "message": "配置合法，可以用于 VAP 运行。",
+            "message": "Config is valid and can be used for a VAP run.",
             "summary": build_config_summary(config),
         }
     except Exception as exc:
         return {
             "valid": False,
-            "message": "配置校验失败。",
+            "message": "Config validation failed.",
             "errors": format_validation_error(exc),
         }
 
@@ -73,33 +73,33 @@ def validate_runtime_config(config: VAPConfig) -> list[dict[str, str]]:
     bench_port = config.vllm_bench_cfg.get("--port")
 
     if deploy_host is None:
-        errors.append({"path": "vllm_deploy_cfg.--host", "message": "缺少 vLLM 部署 host"})
+        errors.append({"path": "vllm_deploy_cfg.--host", "message": "Missing vLLM deploy host"})
     if bench_host is None:
-        errors.append({"path": "vllm_bench_cfg.--host", "message": "缺少 vLLM benchmark host"})
+        errors.append({"path": "vllm_bench_cfg.--host", "message": "Missing vLLM benchmark host"})
     if deploy_host is not None and bench_host is not None and deploy_host != bench_host:
         errors.append(
             {
                 "path": "vllm_deploy_cfg.--host",
-                "message": "部署 host 必须和 benchmark host 一致",
+                "message": "Deploy host must match benchmark host",
             }
         )
 
     if deploy_port is None:
-        errors.append({"path": "vllm_deploy_cfg.--port", "message": "缺少 vLLM 部署端口"})
+        errors.append({"path": "vllm_deploy_cfg.--port", "message": "Missing vLLM deploy port"})
     if bench_port is None:
-        errors.append({"path": "vllm_bench_cfg.--port", "message": "缺少 vLLM benchmark 端口"})
+        errors.append({"path": "vllm_bench_cfg.--port", "message": "Missing vLLM benchmark port"})
     if deploy_port is not None and bench_port is not None and deploy_port != bench_port:
         errors.append(
             {
                 "path": "vllm_deploy_cfg.--port",
-                "message": "部署端口必须和 benchmark 端口一致",
+                "message": "Deploy port must match benchmark port",
             }
         )
     if deploy_port is not None and not is_valid_port(deploy_port):
         errors.append(
             {
                 "path": "vllm_deploy_cfg.--port",
-                "message": "端口必须是 1-65535 的整数",
+                "message": "Port must be an integer from 1 to 65535",
             }
         )
 
@@ -109,7 +109,7 @@ def validate_runtime_config(config: VAPConfig) -> list[dict[str, str]]:
             errors.append(
                 {
                     "path": "distributed_cfg.ray_port",
-                    "message": "Ray 端口必须是 1-65535 的整数",
+                    "message": "Ray port must be an integer from 1 to 65535",
                 }
             )
 
@@ -125,14 +125,14 @@ def validate_risky_config(config: VAPConfig) -> list[dict[str, str]]:
         errors.append(
             {
                 "path": "model_cfg.model_name",
-                "message": "模型名称不能是绝对路径，也不能包含 '..'",
+                "message": "Model name cannot be an absolute path or contain '..'",
             }
         )
     if has_shell_unsafe_chars(model_name):
         errors.append(
             {
                 "path": "model_cfg.model_name",
-                "message": "模型名称包含 shell 风险字符",
+                "message": "Model name contains shell-unsafe characters",
             }
         )
 
@@ -141,7 +141,7 @@ def validate_risky_config(config: VAPConfig) -> list[dict[str, str]]:
         errors.append(
             {
                 "path": "container_cfg.image_name",
-                "message": "Docker 镜像名或标签不能包含空白或 shell 风险字符",
+                "message": "Docker image name or tag cannot contain whitespace or shell-unsafe characters",
             }
         )
 
@@ -156,14 +156,14 @@ def validate_risky_config(config: VAPConfig) -> list[dict[str, str]]:
             errors.append(
                 {
                     "path": f"container_cfg.env_vars.{key}",
-                    "message": "环境变量 key 只能包含字母、数字、下划线，且不能以数字开头",
+                    "message": "Environment variable keys can only contain letters, digits, and underscores, and cannot start with a digit",
                 }
             )
         if has_shell_unsafe_chars(value):
             errors.append(
                 {
                     "path": f"container_cfg.env_vars.{key}",
-                    "message": "环境变量 value 包含换行或 shell 风险字符",
+                    "message": "Environment variable value contains newlines or shell-unsafe characters",
                 }
             )
 
@@ -172,21 +172,21 @@ def validate_risky_config(config: VAPConfig) -> list[dict[str, str]]:
             errors.append(
                 {
                     "path": f"container_cfg.mounts.{index}.source",
-                    "message": "宿主机挂载 source 必须是绝对路径",
+                    "message": "Host mount source must be an absolute path",
                 }
             )
         if not os.path.isabs(mount.target):
             errors.append(
                 {
                     "path": f"container_cfg.mounts.{index}.target",
-                    "message": "容器挂载 target 必须是绝对路径",
+                    "message": "Container mount target must be an absolute path",
                 }
             )
         if has_shell_unsafe_chars(mount.source) or has_shell_unsafe_chars(mount.target):
             errors.append(
                 {
                     "path": f"container_cfg.mounts.{index}",
-                    "message": "挂载路径包含 shell 风险字符",
+                    "message": "Mount path contains shell-unsafe characters",
                 }
             )
 
@@ -195,14 +195,14 @@ def validate_risky_config(config: VAPConfig) -> list[dict[str, str]]:
             errors.append(
                 {
                     "path": f"container_cfg.devices.{index}",
-                    "message": "设备路径必须是绝对路径",
+                    "message": "Device path must be an absolute path",
                 }
             )
         if has_shell_unsafe_chars(device):
             errors.append(
                 {
                     "path": f"container_cfg.devices.{index}",
-                    "message": "设备路径包含 shell 风险字符",
+                    "message": "Device path contains shell-unsafe characters",
                 }
             )
 
@@ -216,14 +216,14 @@ def validate_cli_args(cfg_name: str, cfg: dict[str, Any]) -> list[dict[str, str]
             errors.append(
                 {
                     "path": f"{cfg_name}.{key}",
-                    "message": "CLI 参数 key 必须以 '-' 开头",
+                    "message": "CLI argument key must start with '-'",
                 }
             )
         if has_shell_unsafe_chars(key) or any(ch.isspace() for ch in key):
             errors.append(
                 {
                     "path": f"{cfg_name}.{key}",
-                    "message": "CLI 参数 key 不能包含空白或 shell 风险字符",
+                    "message": "CLI argument key cannot contain whitespace or shell-unsafe characters",
                 }
             )
         if value is not None and isinstance(value, str):
@@ -231,14 +231,14 @@ def validate_cli_args(cfg_name: str, cfg: dict[str, Any]) -> list[dict[str, str]
                 errors.append(
                     {
                         "path": f"{cfg_name}.{key}",
-                        "message": "CLI 参数 value 包含 shell 风险字符",
+                        "message": "CLI argument value contains shell-unsafe characters",
                     }
                 )
             if any(ch.isspace() for ch in value):
                 errors.append(
                     {
                         "path": f"{cfg_name}.{key}",
-                        "message": "CLI 参数 value 当前不支持空白字符",
+                        "message": "CLI argument value does not currently support whitespace",
                     }
                 )
     return errors
@@ -318,7 +318,7 @@ def check_config_ports(payload: dict[str, Any]) -> dict[str, Any]:
     config = VAPConfig.model_validate(payload)
     ports = [
         {
-            "name": "vLLM 服务端口",
+            "name": "vLLM service port",
             "port": config.vllm_port,
             "available": is_local_port_available(config.vllm_port),
         }
@@ -327,7 +327,7 @@ def check_config_ports(payload: dict[str, Any]) -> dict[str, Any]:
         ray_port = config.distributed_cfg.ray_port
         ports.append(
             {
-                "name": "Ray 分布式端口",
+                "name": "Ray distributed port",
                 "port": ray_port,
                 "available": is_local_port_available(ray_port),
             }
@@ -335,9 +335,9 @@ def check_config_ports(payload: dict[str, Any]) -> dict[str, Any]:
 
     for item in ports:
         item["message"] = (
-            f"本机端口 {item['port']} 可用"
+            f"Local port {item['port']} is available"
             if item["available"]
-            else f"本机端口 {item['port']} 已被占用或无权限绑定"
+            else f"Local port {item['port']} is already in use or cannot be bound"
         )
     return {"valid": True, "ports": ports}
 
@@ -353,7 +353,7 @@ def check_config_machines(payload: dict[str, Any]) -> dict[str, Any]:
         return {
             "valid": True,
             "machines": [],
-            "message": "当前配置未启用分布式机器。",
+            "message": "Distributed machines are not enabled in the current config.",
         }
 
     machines: list[dict[str, Any]] = []
@@ -378,13 +378,13 @@ def check_config_resources(payload: dict[str, Any]) -> dict[str, Any]:
 
     checks = [
         check_path(
-            "模型根目录",
+            "Model root",
             model_root,
             expect_dir=True,
             required=True,
         ),
         check_path(
-            "模型权重路径",
+            "Model weight path",
             model_path,
             expect_dir=True,
             required=True,
@@ -396,9 +396,9 @@ def check_config_resources(payload: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(devices, list):
         checks.append(
             {
-                "name": "设备文件 devices",
+                "name": "Device files",
                 "ok": False,
-                "message": "devices 必须是数组或 null",
+                "message": "devices must be an array or null",
                 "path": "",
             }
         )
@@ -406,7 +406,7 @@ def check_config_resources(payload: dict[str, Any]) -> dict[str, Any]:
     for index, device in enumerate(devices):
         checks.append(
             check_path(
-                f"设备文件 devices[{index}]",
+                f"Device file devices[{index}]",
                 str(device),
                 expect_dir=False,
                 required=True,
@@ -417,9 +417,9 @@ def check_config_resources(payload: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(mounts, list):
         checks.append(
             {
-                "name": "挂载源 mounts",
+                "name": "Mount sources",
                 "ok": False,
-                "message": "mounts 必须是数组或 null",
+                "message": "mounts must be an array or null",
                 "path": "",
             }
         )
@@ -428,16 +428,16 @@ def check_config_resources(payload: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(mount, dict):
             checks.append(
                 {
-                    "name": f"挂载源 mounts[{index}].source",
+                    "name": f"Mount source mounts[{index}].source",
                     "ok": False,
-                    "message": "mount 必须是对象",
+                    "message": "mount must be an object",
                     "path": "",
                 }
             )
             continue
         checks.append(
             check_path(
-                f"挂载源 mounts[{index}].source",
+                f"Mount source mounts[{index}].source",
                 str(mount.get("source") or ""),
                 expect_dir=None,
                 required=True,
@@ -458,7 +458,7 @@ def check_path(
         return {
             "name": name,
             "ok": not required,
-            "message": "路径为空" if required else "未配置，跳过",
+            "message": "Path is empty" if required else "Not configured, skipped",
             "path": raw_path,
         }
 
@@ -467,34 +467,34 @@ def check_path(
         return {
             "name": name,
             "ok": False,
-            "message": "路径必须是绝对路径",
+            "message": "Path must be an absolute path",
             "path": raw_path,
         }
     if not path.exists():
         return {
             "name": name,
             "ok": False,
-            "message": "路径不存在",
+            "message": "Path does not exist",
             "path": raw_path,
         }
     if expect_dir is True and not path.is_dir():
         return {
             "name": name,
             "ok": False,
-            "message": "路径存在，但不是目录",
+            "message": "Path exists but is not a directory",
             "path": raw_path,
         }
     if expect_dir is False and not path.exists():
         return {
             "name": name,
             "ok": False,
-            "message": "文件或设备不存在",
+            "message": "File or device does not exist",
             "path": raw_path,
         }
     return {
         "name": name,
         "ok": True,
-        "message": "存在且可访问",
+        "message": "Exists and is accessible",
         "path": raw_path,
     }
 
@@ -502,9 +502,9 @@ def check_path(
 def check_docker_image(image: str) -> dict[str, Any]:
     if not image:
         return {
-            "name": "本机 Docker image",
+            "name": "Local Docker image",
             "ok": False,
-            "message": "Docker image 配置为空",
+            "message": "Docker image config is empty",
             "image": image,
         }
     try:
@@ -512,9 +512,9 @@ def check_docker_image(image: str) -> dict[str, Any]:
         from docker.errors import DockerException, ImageNotFound
     except Exception as exc:
         return {
-            "name": "本机 Docker image",
+            "name": "Local Docker image",
             "ok": False,
-            "message": f"无法导入 Docker SDK：{exc}",
+            "message": f"Cannot import Docker SDK: {exc}",
             "image": image,
         }
 
@@ -522,23 +522,23 @@ def check_docker_image(image: str) -> dict[str, Any]:
         client = docker.from_env()
         client.images.get(image)
         return {
-            "name": "本机 Docker image",
+            "name": "Local Docker image",
             "ok": True,
-            "message": "本机 Docker image 存在",
+            "message": "Local Docker image exists",
             "image": image,
         }
     except ImageNotFound:
         return {
-            "name": "本机 Docker image",
+            "name": "Local Docker image",
             "ok": False,
-            "message": "本机 Docker image 不存在，需要先 pull 或 build",
+            "message": "Local Docker image does not exist. Pull or build it first.",
             "image": image,
         }
     except DockerException as exc:
         return {
-            "name": "本机 Docker image",
+            "name": "Local Docker image",
             "ok": False,
-            "message": f"Docker daemon 不可用或无权限访问：{exc}",
+            "message": f"Docker daemon is unavailable or permission was denied: {exc}",
             "image": image,
         }
 
@@ -552,7 +552,7 @@ def check_machine(node: str, checks: list[dict[str, Any]]) -> dict[str, Any]:
             "reachable": False,
             "ip": None,
             "checks": [],
-            "message": f"DNS 解析失败：{exc}",
+            "message": f"DNS resolution failed: {exc}",
         }
 
     port_results = []
@@ -566,7 +566,7 @@ def check_machine(node: str, checks: list[dict[str, Any]]) -> dict[str, Any]:
                         "label": label,
                         "port": port,
                         "reachable": True,
-                        "message": f"{label} 端口 {port} 可连接",
+                        "message": f"{label} port {port} is reachable",
                     }
                 )
         except OSError as exc:
@@ -575,7 +575,7 @@ def check_machine(node: str, checks: list[dict[str, Any]]) -> dict[str, Any]:
                     "label": label,
                     "port": port,
                     "reachable": False,
-                    "message": f"{label} 端口 {port} 无法连接：{exc}",
+                    "message": f"{label} port {port} is unreachable: {exc}",
                 }
             )
 
@@ -585,7 +585,7 @@ def check_machine(node: str, checks: list[dict[str, Any]]) -> dict[str, Any]:
         "reachable": reachable,
         "ip": resolved_ip,
         "checks": port_results,
-        "message": "机器可联通" if reachable else "机器 DNS 可解析，但检测端口均不可连接",
+        "message": "Machine is reachable" if reachable else "Machine DNS resolved, but none of the checked ports are reachable",
     }
 
 
@@ -594,7 +594,7 @@ def resolve_config_path(raw_path: str | None) -> Path:
         return DEFAULT_CONFIG_PATH
     candidate = (WORK_DIR / raw_path).resolve()
     if not candidate.is_relative_to(WORK_DIR):
-        raise ValueError("配置路径必须位于当前目录下")
+        raise ValueError("Config path must be under the current working directory")
     return candidate
 
 
@@ -618,7 +618,7 @@ def get_run_state_snapshot() -> dict[str, Any]:
 def read_current_log_file(file_name: str) -> dict[str, Any]:
     allowed_names = {"vap_log.txt", "vllm_deploy.log", "vllm_bench.log"}
     if file_name not in allowed_names:
-        raise ValueError("不支持读取该日志文件")
+        raise ValueError("Unsupported log file")
 
     snapshot = get_run_state_snapshot()
     run_dir = Path(snapshot["run_dir"]) if snapshot["run_dir"] else None
@@ -629,7 +629,7 @@ def read_current_log_file(file_name: str) -> dict[str, Any]:
             "path": None,
             "run_dir": None,
             "content": "",
-            "message": "当前没有运行中的任务或本次运行目录尚未创建",
+            "message": "There is no active run or this run directory has not been created yet",
         }
 
     log_path = (run_dir / file_name).resolve()
@@ -648,7 +648,7 @@ def read_current_log_file(file_name: str) -> dict[str, Any]:
         "path": str(log_path),
         "run_dir": str(run_dir),
         "content": "",
-        "message": f"本次运行尚未生成 {file_name}",
+        "message": f"This run has not generated {file_name} yet",
     }
 
 
@@ -740,11 +740,11 @@ def start_vap_run(config_path: Path | None = None) -> dict[str, Any]:
         is_running = RUN_STATE["running"] and process is not None and process.poll() is None
     if is_running:
         if not current_run_is_tensorboard_phase():
-            raise RuntimeError("VAP 正在运行中")
+            raise RuntimeError("VAP is already running")
         with RUN_LOCK:
             RUN_STATE["output"] += "\n--- Previous TensorBoard is still running; stopping it before new run ---\n"
         if not stop_process_group_sync(process):
-            raise RuntimeError("上一次 TensorBoard 进程未能及时停止，请稍后重试")
+            raise RuntimeError("The previous TensorBoard process did not stop in time. Try again later.")
 
     run_config_path = (config_path or CONFIG_PATH).resolve()
     LOGS_DIR.mkdir(exist_ok=True)
@@ -813,12 +813,12 @@ def stop_vap_run() -> dict[str, Any]:
     with RUN_LOCK:
         process = RUN_STATE["process"]
     if process is None or process.poll() is not None:
-        return {"message": "当前没有运行中的 VAP 任务", **get_run_state_snapshot()}
+        return {"message": "There is no active VAP run", **get_run_state_snapshot()}
     terminate_run_process(process)
     force_kill_process_group_later(process)
     with RUN_LOCK:
         RUN_STATE["output"] += "\n--- Stop requested from UI ---\n"
-    return {"message": "已发送停止信号，将停止 main.py 及其子进程", **get_run_state_snapshot()}
+    return {"message": "Stop signal sent. main.py and its child processes will be stopped.", **get_run_state_snapshot()}
 
 
 class VAPConfigHandler(BaseHTTPRequestHandler):
@@ -852,11 +852,11 @@ class VAPConfigHandler(BaseHTTPRequestHandler):
             self.handle_put_config()
         except json.JSONDecodeError as exc:
             self.send_json(
-                {"message": f"JSON 解析失败：{exc}"}, HTTPStatus.BAD_REQUEST
+                {"message": f"JSON parse failed: {exc}"}, HTTPStatus.BAD_REQUEST
             )
         except Exception as exc:
             self.send_json(
-                {"message": f"保存配置失败：{exc}"}, HTTPStatus.BAD_REQUEST
+                {"message": f"Failed to save config: {exc}"}, HTTPStatus.BAD_REQUEST
             )
 
     def do_POST(self) -> None:
@@ -878,13 +878,13 @@ class VAPConfigHandler(BaseHTTPRequestHandler):
             handler()
         except json.JSONDecodeError as exc:
             self.send_json(
-                {"message": f"JSON 解析失败：{exc}"}, HTTPStatus.BAD_REQUEST
+                {"message": f"JSON parse failed: {exc}"}, HTTPStatus.BAD_REQUEST
             )
         except ValueError as exc:
             self.send_json({"message": str(exc)}, HTTPStatus.BAD_REQUEST)
         except Exception as exc:
             self.send_json(
-                {"message": f"服务器处理失败：{exc}"},
+                {"message": f"Server handling failed: {exc}"},
                 HTTPStatus.INTERNAL_SERVER_ERROR,
             )
 
@@ -892,16 +892,13 @@ class VAPConfigHandler(BaseHTTPRequestHandler):
         try:
             params = parse_qs(query)
             raw_path = params.get("path", [None])[0]
-            if not raw_path and CONFIG_PATH.is_file():
-                config_path = CONFIG_PATH
-            else:
-                config_path = resolve_config_path(raw_path)
+            config_path = resolve_config_path(raw_path)
             with config_path.open("r", encoding="utf-8") as config_file:
                 payload = json.load(config_file)
             self.send_json({"path": str(config_path), "config": payload})
         except Exception as exc:
             self.send_json(
-                {"message": f"读取配置失败：{exc}"}, HTTPStatus.BAD_REQUEST
+                {"message": f"Failed to read config: {exc}"}, HTTPStatus.BAD_REQUEST
             )
 
     def handle_put_config(self) -> None:
@@ -910,7 +907,7 @@ class VAPConfigHandler(BaseHTTPRequestHandler):
         if not validation["valid"]:
             self.send_json(
                 {
-                    "message": "配置保存前校验失败",
+                    "message": "Config validation failed before saving",
                     "errors": validation["errors"],
                 },
                 HTTPStatus.BAD_REQUEST,
@@ -921,7 +918,7 @@ class VAPConfigHandler(BaseHTTPRequestHandler):
             config_file.write("\n")
         self.send_json(
             {
-                "message": "配置已保存",
+                "message": "Config saved",
                 "path": str(CONFIG_PATH),
                 "validation": validation,
             }
@@ -934,7 +931,7 @@ class VAPConfigHandler(BaseHTTPRequestHandler):
             self.send_json(read_current_log_file(file_name))
         except Exception as exc:
             self.send_json(
-                {"message": f"读取日志失败：{exc}"}, HTTPStatus.BAD_REQUEST
+                {"message": f"Failed to read log: {exc}"}, HTTPStatus.BAD_REQUEST
             )
 
     def handle_run_status(self) -> None:
@@ -961,7 +958,7 @@ class VAPConfigHandler(BaseHTTPRequestHandler):
                 "path": str(temp_path),
                 "file_name": temp_path.name,
                 "validation": validation,
-                "message": "已生成临时配置文件。",
+                "message": "Temporary config file generated.",
             }
         )
 
@@ -984,12 +981,12 @@ class VAPConfigHandler(BaseHTTPRequestHandler):
             raw_body = self.rfile.read(length)
             payload = json.loads(raw_body.decode("utf-8"))
             if not isinstance(payload, dict):
-                raise ValueError("运行配置必须是 JSON object")
+                raise ValueError("Run config must be a JSON object")
             validation = validate_config_payload(payload)
             if not validation["valid"]:
                 self.send_json(
                     {
-                        "message": "运行配置校验失败",
+                        "message": "Run config validation failed",
                         "errors": validation["errors"],
                     },
                     HTTPStatus.BAD_REQUEST,
@@ -1006,7 +1003,7 @@ class VAPConfigHandler(BaseHTTPRequestHandler):
         raw_body = self.rfile.read(length)
         payload = json.loads(raw_body.decode("utf-8"))
         if not isinstance(payload, dict):
-            raise ValueError("请求体必须是 JSON object")
+            raise ValueError("Request body must be a JSON object")
         return payload
 
     def serve_static(self, relative_path: str) -> None:
@@ -1043,14 +1040,14 @@ class VAPConfigHandler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="VAP 配置管理页面")
+    parser = argparse.ArgumentParser(description="VAP config management UI")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8899)
     args = parser.parse_args()
 
     server = ThreadingHTTPServer((args.host, args.port), VAPConfigHandler)
-    print(f"VAP 配置页面已启动：http://{args.host}:{args.port}")
-    print(f"临时配置文件将保存到：{WORK_DIR}")
+    print(f"VAP config UI started: http://{args.host}:{args.port}")
+    print(f"Temporary config files will be saved to: {WORK_DIR}")
     server.serve_forever()
 
 

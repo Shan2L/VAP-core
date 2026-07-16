@@ -136,9 +136,90 @@
 
     .actions {
       display: flex;
+      align-items: center;
       gap: 8px;
       flex-wrap: wrap;
       justify-content: flex-end;
+    }
+
+    .theme-toggle {
+      position: relative;
+      width: 72px;
+      height: 34px;
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid rgba(34, 211, 238, 0.34);
+      border-radius: 999px;
+      padding: 0 9px;
+      background:
+        linear-gradient(135deg, rgba(10, 18, 44, 0.96), rgba(30, 27, 75, 0.92));
+      box-shadow:
+        0 8px 18px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    .theme-toggle:hover {
+      border-color: rgba(34, 211, 238, 0.66);
+      box-shadow:
+        0 0 18px rgba(34, 211, 238, 0.18),
+        0 8px 20px rgba(0, 0, 0, 0.20),
+        inset 0 1px 0 rgba(255, 255, 255, 0.10);
+    }
+
+    .theme-icon {
+      z-index: 1;
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      line-height: 1;
+      opacity: 0.62;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+
+    .theme-knob {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 34% 28%, #ffffff 0 16%, #facc15 18% 42%, #f97316 100%);
+      box-shadow:
+        0 5px 14px rgba(250, 204, 21, 0.30),
+        inset 0 1px 0 rgba(255, 255, 255, 0.88);
+      transition: transform 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
+    }
+
+    :root[data-theme="dark"] .theme-toggle .moon-icon,
+    :root[data-theme="light"] .theme-toggle .sun-icon {
+      opacity: 1;
+      transform: scale(1.06);
+    }
+
+    :root[data-theme="dark"] .theme-knob {
+      transform: translateX(38px);
+      background:
+        radial-gradient(circle at 38% 32%, #ffffff 0 12%, #bae6fd 14% 38%, #38bdf8 100%);
+      box-shadow:
+        0 5px 14px rgba(56, 189, 248, 0.30),
+        inset 0 1px 0 rgba(255, 255, 255, 0.82);
+    }
+
+    :root[data-theme="light"] .theme-toggle {
+      border-color: rgba(37, 99, 235, 0.26);
+      background:
+        linear-gradient(135deg, rgba(219, 234, 254, 0.95), rgba(255, 247, 237, 0.96));
+      box-shadow:
+        0 9px 18px rgba(37, 99, 235, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92);
     }
 
     button {
@@ -151,6 +232,7 @@
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
+      transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease, color 0.16s ease;
     }
 
     button:hover:not(:disabled) {
@@ -160,17 +242,40 @@
     }
 
     :root[data-theme="light"] button {
-      background: rgba(255, 255, 255, 0.86);
+      border-color: rgba(37, 99, 235, 0.24);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(232, 240, 255, 0.88));
+      color: #1e3a8a;
+      box-shadow:
+        0 8px 18px rgba(37, 99, 235, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92),
+        inset 0 -1px 0 rgba(37, 99, 235, 0.08);
     }
 
     :root[data-theme="light"] button:hover:not(:disabled) {
-      background: rgba(239, 246, 255, 0.94);
-      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.12);
+      border-color: rgba(37, 99, 235, 0.46);
+      background:
+        linear-gradient(180deg, #ffffff, #dbeafe);
+      box-shadow:
+        0 12px 24px rgba(37, 99, 235, 0.18),
+        0 3px 8px rgba(124, 58, 237, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+      transform: translateY(-1px);
     }
 
     button:disabled {
       opacity: 0.55;
       cursor: not-allowed;
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    :root[data-theme="light"] button:active:not(:disabled) {
+      box-shadow:
+        0 5px 12px rgba(37, 99, 235, 0.12),
+        inset 0 2px 4px rgba(37, 99, 235, 0.12);
     }
 
     button.primary {
@@ -180,10 +285,52 @@
       box-shadow: 0 0 22px rgba(34, 211, 238, 0.28), 0 8px 22px rgba(236, 72, 153, 0.18);
     }
 
+    :root[data-theme="light"] button.primary {
+      border-color: rgba(37, 99, 235, 0.72);
+      background:
+        linear-gradient(135deg, #2563eb 0%, #4f46e5 52%, #7c3aed 100%);
+      color: #ffffff;
+      text-shadow: 0 1px 1px rgba(15, 23, 42, 0.42);
+      box-shadow:
+        0 14px 28px rgba(37, 99, 235, 0.28),
+        0 5px 12px rgba(79, 70, 229, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.30),
+        inset 0 -1px 0 rgba(15, 23, 42, 0.18);
+    }
+
+    :root[data-theme="light"] button.primary:hover:not(:disabled) {
+      border-color: rgba(29, 78, 216, 0.86);
+      background:
+        linear-gradient(135deg, #1d4ed8 0%, #4338ca 52%, #6d28d9 100%);
+      box-shadow:
+        0 16px 32px rgba(37, 99, 235, 0.34),
+        0 6px 14px rgba(79, 70, 229, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.32);
+    }
+
     button.danger {
       border-color: rgba(251, 113, 133, 0.45);
       background: rgba(76, 18, 38, 0.72);
       color: var(--danger);
+    }
+
+    :root[data-theme="light"] button.danger {
+      border-color: rgba(225, 29, 72, 0.30);
+      background:
+        linear-gradient(180deg, rgba(255, 241, 242, 0.98), rgba(255, 228, 230, 0.90));
+      color: #be123c;
+      box-shadow:
+        0 8px 18px rgba(225, 29, 72, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    }
+
+    :root[data-theme="light"] button.danger:hover:not(:disabled) {
+      border-color: rgba(225, 29, 72, 0.48);
+      background:
+        linear-gradient(180deg, #fff1f2, #fecdd3);
+      box-shadow:
+        0 12px 24px rgba(225, 29, 72, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.86);
     }
 
     button.tensorboard-ready {
@@ -893,38 +1040,42 @@
   <header>
     <h1>VAP CONTROL</h1>
     <div class="actions">
-      <button id="btn-theme" type="button" aria-pressed="false">亮白主题</button>
-      <button id="btn-reload" type="button">重新加载</button>
-      <button id="btn-validate" type="button">校验配置</button>
-      <button id="btn-save" type="button">保存配置</button>
-      <button class="primary" id="btn-run" type="button">运行</button>
+      <button class="theme-toggle" id="btn-theme" type="button" aria-label="Toggle theme" aria-pressed="false" title="Switch theme">
+        <span class="theme-icon sun-icon" aria-hidden="true">☀</span>
+        <span class="theme-icon moon-icon" aria-hidden="true">☾</span>
+        <span class="theme-knob" aria-hidden="true"></span>
+      </button>
+      <button id="btn-reload" type="button">Reload</button>
+      <button id="btn-validate" type="button">Validate Config</button>
+      <button id="btn-save" type="button">Download Config</button>
+      <button class="primary" id="btn-run" type="button">Run</button>
       <button id="btn-tensorboard" type="button" disabled>TensorBoard</button>
-      <button class="danger" id="btn-stop" type="button" disabled>停止</button>
+      <button class="danger" id="btn-stop" type="button" disabled>Stop</button>
     </div>
   </header>
 
   <main>
     <div class="form">
       <div class="note">
-        修改配置后保存到 <code>config.json</code>。点击运行会启动 <code>main.py</code>，右侧显示实时日志。
+        Edit the form, download the generated JSON if needed, then run with a temporary config. Current run logs are shown on the right.
       </div>
 
       <section class="config-panel active">
-        <h2>基础配置</h2>
+        <h2>Basic Config</h2>
         <div class="section-body">
           <div class="grid">
-            <label>模型名称<input id="model_name" placeholder="Qwen3-0.6B" /></label>
-            <label>模型根目录<input id="model_path" placeholder="/path/to/models" /></label>
-            <label class="wide-field">Docker 镜像<input id="image_name" placeholder="registry/image" /></label>
-            <label>镜像标签<input id="image_tag" placeholder="latest" /></label>
+            <label>Model Name<input id="model_name" placeholder="Qwen3-0.6B" /></label>
+            <label>Model Root<input id="model_path" placeholder="/path/to/models" /></label>
+            <label class="wide-field">Docker Image<input id="image_name" placeholder="registry/image" /></label>
+            <label>Image Tag<input id="image_tag" placeholder="latest" /></label>
           </div>
         </div>
       </section>
 
       <section class="config-panel disabled-panel">
-        <h2>分布式配置</h2>
+        <h2>Distributed Config</h2>
         <div class="section-body">
-          <p class="hint">暂不支持编辑：当前 <code>main.py</code> 会在加载配置后手动禁用 <code>distributed_cfg</code>。</p>
+          <p class="hint">Editing is not supported yet: <code>main.py</code> currently disables <code>distributed_cfg</code> after loading the config.</p>
           <div class="readonly-row"><strong>num_nodes</strong><div class="readonly-value" id="dist-num-nodes"></div></div>
           <div class="readonly-row"><strong>ray_port</strong><div class="readonly-value" id="dist-ray-port"></div></div>
           <div class="readonly-row"><strong>head_node</strong><div class="readonly-value" id="dist-head-node"></div></div>
@@ -933,62 +1084,62 @@
       </section>
 
       <section class="config-panel">
-        <h2>容器配置</h2>
+        <h2>Container Config</h2>
         <div class="section-body">
-          <p class="hint">GPU 设备</p>
+          <p class="hint">GPU Devices</p>
           <div class="list-editor" id="devices-list"></div>
-          <button class="small add-row" type="button" id="add-device">+ 添加设备</button>
+          <button class="small add-row" type="button" id="add-device">+ Add Device</button>
 
-          <p class="hint" style="margin-top:18px">挂载目录</p>
+          <p class="hint" style="margin-top:18px">Mounts</p>
           <div class="list-editor" id="mounts-list"></div>
-          <button class="small add-row" type="button" id="add-mount">+ 添加挂载</button>
+          <button class="small add-row" type="button" id="add-mount">+ Add Mount</button>
 
-          <p class="hint" style="margin-top:18px">环境变量</p>
+          <p class="hint" style="margin-top:18px">Environment Variables</p>
           <div class="list-editor" id="env-list"></div>
-          <button class="small add-row" type="button" id="add-env">+ 添加环境变量</button>
+          <button class="small add-row" type="button" id="add-env">+ Add Environment Variable</button>
         </div>
       </section>
 
       <section class="config-panel">
-        <h2>vLLM 部署配置</h2>
+        <h2>vLLM Deploy Config</h2>
         <div class="section-body">
-          <p class="hint">值为 <code>null</code> 表示只传 flag。<code>--host</code> 和 <code>--port</code> 会与 Benchmark 配置自动同步。</p>
+          <p class="hint">Use <code>null</code> for flag-only arguments. <code>--host</code> and <code>--port</code> are synchronized with Benchmark config.</p>
           <div class="kv-list" id="deploy-kv"></div>
-          <button class="small add-row" type="button" data-add-kv="deploy-kv">+ 添加参数</button>
+          <button class="small add-row" type="button" data-add-kv="deploy-kv">+ Add Argument</button>
         </div>
       </section>
 
       <section class="config-panel">
-        <h2>Profiler 配置</h2>
+        <h2>Profiler Config</h2>
         <div class="section-body">
-          <p class="hint">布尔值填 <code>true</code> / <code>false</code>，可自由增删。</p>
+          <p class="hint">Use <code>true</code> / <code>false</code> for booleans. Rows can be added or removed freely.</p>
           <div class="kv-list" id="profiler-kv"></div>
-          <button class="small add-row" type="button" data-add-kv="profiler-kv">+ 添加参数</button>
+          <button class="small add-row" type="button" data-add-kv="profiler-kv">+ Add Argument</button>
         </div>
       </section>
 
       <section class="config-panel">
-        <h2>Benchmark 配置</h2>
+        <h2>Benchmark Config</h2>
         <div class="section-body">
-          <p class="hint"><code>--host</code> 和 <code>--port</code> 会与 vLLM 部署配置自动同步，避免运行时不一致。</p>
+          <p class="hint"><code>--host</code> and <code>--port</code> are synchronized with vLLM deploy config to avoid runtime mismatches.</p>
           <div class="kv-list" id="bench-kv"></div>
-          <button class="small add-row" type="button" data-add-kv="bench-kv">+ 添加参数</button>
+          <button class="small add-row" type="button" data-add-kv="bench-kv">+ Add Argument</button>
         </div>
       </section>
     </div>
 
-    <div class="splitter" id="layout-splitter" role="separator" aria-label="调整配置和日志区域宽度" aria-orientation="vertical" tabindex="0"></div>
+    <div class="splitter" id="layout-splitter" role="separator" aria-label="Resize config and log panels" aria-orientation="vertical" tabindex="0"></div>
 
     <section class="log-panel">
       <div class="log-item active" data-log-panel="run">
         <button class="log-toggle" type="button" data-open-log="run">
           <span class="log-heading">
-            <span class="log-title">运行日志</span>
-            <span class="status" id="run-status">空闲</span>
+            <span class="log-title">Run Log</span>
+            <span class="status" id="run-status">Idle</span>
           </span>
           <span class="log-actions">
-            <span class="log-action status" data-copy-log="log-output">复制</span>
-            <span class="log-action status" data-download-log="log-output" data-file-name="vap_log.txt">下载</span>
+            <span class="log-action status" data-copy-log="log-output">Copy</span>
+            <span class="log-action status" data-download-log="log-output" data-file-name="vap_log.txt">Download</span>
           </span>
         </button>
         <div class="log-body">
@@ -998,12 +1149,12 @@
       <div class="log-item" data-log-panel="deploy">
         <button class="log-toggle" type="button" data-open-log="deploy">
           <span class="log-heading">
-            <span class="log-title">vLLM 部署日志</span>
+            <span class="log-title">vLLM Deploy Log</span>
             <span class="status">vllm_deploy.log</span>
           </span>
           <span class="log-actions">
-            <span class="log-action status" data-copy-log="deploy-log-output">复制</span>
-            <span class="log-action status" data-download-log="deploy-log-output" data-file-name="vllm_deploy.log">下载</span>
+            <span class="log-action status" data-copy-log="deploy-log-output">Copy</span>
+            <span class="log-action status" data-download-log="deploy-log-output" data-file-name="vllm_deploy.log">Download</span>
           </span>
         </button>
         <div class="log-body">
@@ -1013,12 +1164,12 @@
       <div class="log-item" data-log-panel="bench">
         <button class="log-toggle" type="button" data-open-log="bench">
           <span class="log-heading">
-            <span class="log-title">vLLM Bench 日志</span>
+            <span class="log-title">vLLM Benchmark Log</span>
             <span class="status">vllm_bench.log</span>
           </span>
           <span class="log-actions">
-            <span class="log-action status" data-copy-log="bench-log-output">复制</span>
-            <span class="log-action status" data-download-log="bench-log-output" data-file-name="vllm_bench.log">下载</span>
+            <span class="log-action status" data-copy-log="bench-log-output">Copy</span>
+            <span class="log-action status" data-download-log="bench-log-output" data-file-name="vllm_bench.log">Download</span>
           </span>
         </button>
         <div class="log-body">
@@ -1032,10 +1183,10 @@
     <div class="validation-modal">
       <div class="validation-head">
         <div>
-          <h3 id="validation-title">配置校验进度</h3>
-          <p id="validation-subtitle">准备校验当前表单配置</p>
+          <h3 id="validation-title">Config Validation Progress</h3>
+          <p id="validation-subtitle">Preparing to validate the current form config</p>
         </div>
-        <button class="small" id="validation-close" type="button">关闭</button>
+        <button class="small" id="validation-close" type="button">Close</button>
       </div>
       <div class="progress-wrap">
         <div class="progress-meta">
@@ -1048,8 +1199,8 @@
       </div>
       <div class="validation-list" id="validation-list"></div>
       <div class="validation-foot">
-        <span id="validation-summary">等待开始</span>
-        <button class="primary small" id="validation-ok" type="button">知道了</button>
+        <span id="validation-summary">Waiting to start</span>
+        <button class="primary small" id="validation-ok" type="button">OK</button>
       </div>
     </div>
   </div>
@@ -1059,8 +1210,8 @@
   <script>
     const DEFAULT_CONFIG = {
       model_cfg: {
-        model_name: "Qwen3-0.6B",
-        model_path: "/home/DomainUsers/syliu",
+        model_name: "Qwen/Qwen3-0.6B",
+        model_path: "/home/nfs_share/huggingface/",
       },
       distributed_cfg: {
         num_nodes: 2,
@@ -1163,15 +1314,16 @@
     function applyTheme(theme) {
       const normalizedTheme = theme === "light" ? "light" : "dark";
       document.documentElement.dataset.theme = normalizedTheme;
-      btnTheme.textContent = normalizedTheme === "light" ? "黑夜主题" : "亮白主题";
       btnTheme.setAttribute("aria-pressed", String(normalizedTheme === "light"));
+      btnTheme.title = normalizedTheme === "light" ? "Switch to dark theme" : "Switch to light theme";
+      btnTheme.setAttribute("aria-label", btnTheme.title);
     }
 
     function toggleTheme() {
       const nextTheme = getCurrentTheme() === "light" ? "dark" : "light";
       localStorage.setItem(THEME_KEY, nextTheme);
       applyTheme(nextTheme);
-      showToast(nextTheme === "light" ? "已切换到亮白主题" : "已切换到黑夜主题");
+      showToast(nextTheme === "light" ? "Switched to light theme" : "Switched to dark theme");
     }
 
     function getSavedLayoutRatio() {
@@ -1264,9 +1416,9 @@
         return JSON.parse(text);
       } catch {
         if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
-          throw new Error(`${fallbackMessage}：后端返回了 HTML 页面，通常是服务进程未重启或接口不存在`);
+          throw new Error(`${fallbackMessage}: backend returned an HTML page. The service may need a restart or the API may not exist.`);
         }
-        throw new Error(`${fallbackMessage}：后端返回的不是合法 JSON`);
+        throw new Error(`${fallbackMessage}: backend response is not valid JSON`);
       }
     }
 
@@ -1280,7 +1432,7 @@
     function setTensorBoardReady(isReady) {
       btnTensorBoard.classList.toggle("tensorboard-ready", isReady);
       btnTensorBoard.disabled = !isReady;
-      btnTensorBoard.title = isReady ? "TensorBoard 已启动，点击打开" : "打开 TensorBoard";
+      btnTensorBoard.title = isReady ? "TensorBoard is ready. Click to open it." : "Open TensorBoard";
     }
 
     function startStatusPolling() {
@@ -1315,12 +1467,12 @@
     }
 
     async function loadLogFile(fileName, target) {
-      target.textContent = "加载中...";
+      target.textContent = "Loading...";
       try {
         const response = await fetch(`/api/log-file?name=${encodeURIComponent(fileName)}`);
-        const data = await readJsonResponse(response, "读取日志失败");
-        if (!response.ok) throw new Error(data.message || "读取日志失败");
-        target.textContent = data.exists ? data.content : (data.message || `本次运行暂未生成 ${fileName}`);
+        const data = await readJsonResponse(response, "Failed to read log");
+        if (!response.ok) throw new Error(data.message || "Failed to read log");
+        target.textContent = data.exists ? data.content : (data.message || `This run has not generated ${fileName} yet`);
         scrollLogToBottom(target);
       } catch (error) {
         target.textContent = error.message;
@@ -1340,7 +1492,7 @@
     async function copyLogContent(targetId) {
       const text = getLogText(targetId);
       if (!text.trim()) {
-        showToast("当前日志为空", "error");
+        showToast("Current log is empty", "error");
         return;
       }
       if (navigator.clipboard?.writeText) {
@@ -1355,13 +1507,13 @@
         document.execCommand("copy");
         textarea.remove();
       }
-      showToast("日志内容已复制");
+      showToast("Log content copied");
     }
 
     function downloadLogContent(targetId, fileName) {
       const text = getLogText(targetId);
       if (!text.trim()) {
-        showToast("当前日志为空", "error");
+        showToast("Current log is empty", "error");
         return;
       }
       const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
@@ -1373,7 +1525,7 @@
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
-      showToast("日志下载已开始");
+      showToast("Log download started");
     }
 
     function refreshFileLogs() {
@@ -1439,7 +1591,7 @@
       row.innerHTML = `
         <input class="kv-key mono" value="${escapeAttr(key)}" placeholder="key" />
         <input class="kv-value mono" value="${escapeAttr(value)}" placeholder="value / null" />
-        <button class="small danger" type="button">删除</button>`;
+        <button class="small danger" type="button">Delete</button>`;
       const keyInput = row.querySelector(".kv-key");
       const valueInput = row.querySelector(".kv-value");
       keyInput.addEventListener("input", () => syncVllmKvRow(row, "key"));
@@ -1527,7 +1679,7 @@
       row.className = "list-row";
       row.innerHTML = `
         <input class="device-input mono" value="${escapeAttr(value)}" placeholder="/dev/dri/renderD128" />
-        <button class="small danger" type="button">删除</button>`;
+        <button class="small danger" type="button">Delete</button>`;
       row.querySelector("button").addEventListener("click", () => row.remove());
       document.getElementById("devices-list").appendChild(row);
     }
@@ -1539,7 +1691,7 @@
       row.innerHTML = `
         <input class="mount-source mono" value="${escapeAttr(source)}" placeholder="host path" />
         <input class="mount-target mono" value="${escapeAttr(target)}" placeholder="container path" />
-        <button class="small danger" type="button">删除</button>`;
+        <button class="small danger" type="button">Delete</button>`;
       row.querySelector("button").addEventListener("click", () => row.remove());
       document.getElementById("mounts-list").appendChild(row);
     }
@@ -1550,7 +1702,7 @@
       row.innerHTML = `
         <input class="env-key mono" value="${escapeAttr(key)}" placeholder="KEY" />
         <input class="env-value mono" value="${escapeAttr(value)}" placeholder="value" />
-        <button class="small danger" type="button">删除</button>`;
+        <button class="small danger" type="button">Delete</button>`;
       row.querySelector("button").addEventListener("click", () => row.remove());
       document.getElementById("env-list").appendChild(row);
     }
@@ -1629,9 +1781,9 @@
     async function loadConfig() {
       const response = await fetch("/api/config");
       if (!response.ok) throw new Error(await response.text());
-      const data = await readJsonResponse(response, "加载配置失败");
+      const data = await readJsonResponse(response, "Failed to load config");
       fillForm(data.config || data);
-      showToast("配置已加载");
+      showToast("Config loaded");
     }
 
     async function saveConfig() {
@@ -1646,7 +1798,7 @@
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
-      showToast("配置已下载到客户端");
+      showToast("Config downloaded");
     }
 
     function isPlainObject(value) {
@@ -1659,14 +1811,14 @@
 
     function assertPort(value, label) {
       if (!Number.isInteger(value) || value < 1 || value > 65535) {
-        throw new Error(`${label} 必须是 1-65535 的整数`);
+        throw new Error(`${label} must be an integer from 1 to 65535`);
       }
     }
 
     function assertKvObject(value, label) {
-      if (!isPlainObject(value)) throw new Error(`${label} 必须是对象`);
+      if (!isPlainObject(value)) throw new Error(`${label} must be an object`);
       const emptyKeys = Object.keys(value).filter((key) => !key.trim());
-      if (emptyKeys.length) throw new Error(`${label} 存在空 key`);
+      if (emptyKeys.length) throw new Error(`${label} contains an empty key`);
     }
 
     function buildValidationSteps(config) {
@@ -1678,82 +1830,82 @@
 
       return [
         {
-          title: "基础字段",
-          detail: "检查模型名称、模型根目录、Docker 镜像和标签",
+          title: "Basic Fields",
+          detail: "Check model name, model root, Docker image, and tag",
           run: () => {
-            assertTruthy(config.model_cfg?.model_name, "模型名称不能为空");
-            assertTruthy(config.model_cfg?.model_path, "模型根目录不能为空");
-            assertTruthy(config.container_cfg?.image_name, "Docker 镜像不能为空");
-            assertTruthy(config.container_cfg?.image_tag, "Docker 镜像标签不能为空");
-            return `模型 ${config.model_cfg.model_name}，镜像 ${config.container_cfg.image_name}:${config.container_cfg.image_tag}`;
+            assertTruthy(config.model_cfg?.model_name, "Model name is required");
+            assertTruthy(config.model_cfg?.model_path, "Model root is required");
+            assertTruthy(config.container_cfg?.image_name, "Docker image is required");
+            assertTruthy(config.container_cfg?.image_tag, "Docker image tag is required");
+            return `Model ${config.model_cfg.model_name}, image ${config.container_cfg.image_name}:${config.container_cfg.image_tag}`;
           },
         },
         {
-          title: "vLLM 部署参数",
-          detail: "检查部署参数对象、--host、--port 和端口范围",
+          title: "vLLM Deploy Arguments",
+          detail: "Check deploy argument object, --host, --port, and port range",
           run: () => {
-            assertKvObject(config.vllm_deploy_cfg, "vLLM 部署参数");
-            assertTruthy(config.vllm_deploy_cfg["--host"], "部署参数缺少 --host");
-            assertPort(config.vllm_deploy_cfg["--port"], "部署参数 --port");
-            return `部署地址 ${config.vllm_deploy_cfg["--host"]}:${config.vllm_deploy_cfg["--port"]}`;
+            assertKvObject(config.vllm_deploy_cfg, "vLLM deploy arguments");
+            assertTruthy(config.vllm_deploy_cfg["--host"], "Deploy arguments are missing --host");
+            assertPort(config.vllm_deploy_cfg["--port"], "Deploy argument --port");
+            return `Deploy address ${config.vllm_deploy_cfg["--host"]}:${config.vllm_deploy_cfg["--port"]}`;
           },
         },
         {
-          title: "vLLM Benchmark 参数",
-          detail: "检查 benchmark 参数对象、--host、--port、endpoint",
+          title: "vLLM Benchmark Arguments",
+          detail: "Check benchmark argument object, --host, --port, and endpoint",
           run: () => {
-            assertKvObject(config.vllm_bench_cfg, "vLLM Benchmark 参数");
-            assertTruthy(config.vllm_bench_cfg["--host"], "Benchmark 参数缺少 --host");
-            assertPort(config.vllm_bench_cfg["--port"], "Benchmark 参数 --port");
-            assertTruthy(config.vllm_bench_cfg["--endpoint"], "Benchmark 参数缺少 --endpoint");
+            assertKvObject(config.vllm_bench_cfg, "vLLM benchmark arguments");
+            assertTruthy(config.vllm_bench_cfg["--host"], "Benchmark arguments are missing --host");
+            assertPort(config.vllm_bench_cfg["--port"], "Benchmark argument --port");
+            assertTruthy(config.vllm_bench_cfg["--endpoint"], "Benchmark arguments are missing --endpoint");
             return `Benchmark endpoint ${config.vllm_bench_cfg["--endpoint"]}`;
           },
         },
         {
-          title: "部署与 Benchmark 一致性",
-          detail: "检查 deploy/bench 的 host 和 port 是否一致",
+          title: "Deploy and Benchmark Consistency",
+          detail: "Check whether deploy and benchmark host/port match",
           run: () => {
             if (config.vllm_deploy_cfg["--host"] !== config.vllm_bench_cfg["--host"]) {
-              throw new Error("部署 --host 必须和 Benchmark --host 一致");
+              throw new Error("Deploy --host must match Benchmark --host");
             }
             if (config.vllm_deploy_cfg["--port"] !== config.vllm_bench_cfg["--port"]) {
-              throw new Error("部署 --port 必须和 Benchmark --port 一致");
+              throw new Error("Deploy --port must match Benchmark --port");
             }
-            return "deploy 和 bench 使用相同 host/port";
+            return "Deploy and benchmark use the same host/port";
           },
         },
         {
-          title: "本机端口可用性",
-          detail: "检查 vLLM 端口和 Ray 端口是否已被占用",
+          title: "Local Port Availability",
+          detail: "Check whether vLLM and Ray ports are already in use",
           run: async () => {
             const data = await checkPortsOnServer(config);
             if (data.valid === false) {
               const messages = (data.errors || [])
                 .map((error) => `${error.path || "root"}: ${error.message || error}`)
                 .join("\n");
-              throw new Error(messages || "端口检测前配置校验失败");
+              throw new Error(messages || "Config validation failed before port checks");
             }
             const blockedPorts = (data.ports || []).filter((port) => !port.available);
             if (blockedPorts.length) {
               throw new Error(blockedPorts.map((port) => port.message).join("\n"));
             }
-            return (data.ports || []).map((port) => `${port.name} ${port.port} 可用`).join("；") || "没有需要检测的端口";
+            return (data.ports || []).map((port) => `${port.name} ${port.port} is available`).join("; ") || "No ports need to be checked";
           },
         },
         {
-          title: "模型权重是否存在",
-          detail: "检查模型根目录和完整模型权重路径是否存在",
+          title: "Model Weights Exist",
+          detail: "Check model root and full model weight path",
           run: async () => {
             const data = await getResourceChecks();
             assertResourcePayload(data);
-            const modelChecks = (data.checks || []).filter((check) => check.name.startsWith("模型"));
+            const modelChecks = (data.checks || []).filter((check) => check.name.startsWith("Model"));
             assertChecksOk(modelChecks);
             return modelChecks.map((check) => `${check.name}: ${check.path}`).join("；");
           },
         },
         {
-          title: "本机 Docker image 是否存在",
-          detail: "检查配置中的 Docker image 是否存在于本机 Docker daemon",
+          title: "Local Docker Image Exists",
+          detail: "Check whether the configured Docker image exists in the local Docker daemon",
           run: async () => {
             const data = await getResourceChecks();
             assertResourcePayload(data);
@@ -1763,103 +1915,103 @@
           },
         },
         {
-          title: "Profiler 配置",
-          detail: "检查 profiler 必填项和数值类型",
+          title: "Profiler Config",
+          detail: "Check required profiler fields and numeric types",
           run: () => {
-            assertKvObject(config.profiler_cfg, "Profiler 配置");
-            assertTruthy(config.profiler_cfg.profiler, "profiler 不能为空");
-            assertTruthy(config.profiler_cfg.torch_profiler_dir, "torch_profiler_dir 不能为空");
+            assertKvObject(config.profiler_cfg, "Profiler config");
+            assertTruthy(config.profiler_cfg.profiler, "profiler is required");
+            assertTruthy(config.profiler_cfg.torch_profiler_dir, "torch_profiler_dir is required");
             ["delay_iterations", "max_iterations"].forEach((key) => {
               if (!Number.isInteger(config.profiler_cfg[key]) || config.profiler_cfg[key] < 0) {
-                throw new Error(`${key} 必须是非负整数`);
+                throw new Error(`${key} must be a non-negative integer`);
               }
             });
             return `profiler=${config.profiler_cfg.profiler}, max_iterations=${config.profiler_cfg.max_iterations}`;
           },
         },
         {
-          title: "容器设备与挂载",
-          detail: "检查 devices、mounts 的结构和空值",
+          title: "Container Devices and Mounts",
+          detail: "Check devices/mounts structure and empty values",
           run: () => {
             const devices = config.container_cfg?.devices || [];
             const mounts = config.container_cfg?.mounts || [];
-            if (!Array.isArray(devices)) throw new Error("devices 必须是数组或 null");
-            if (!Array.isArray(mounts)) throw new Error("mounts 必须是数组或 null");
-            devices.forEach((device, index) => assertTruthy(device, `devices[${index}] 不能为空`));
+            if (!Array.isArray(devices)) throw new Error("devices must be an array or null");
+            if (!Array.isArray(mounts)) throw new Error("mounts must be an array or null");
+            devices.forEach((device, index) => assertTruthy(device, `devices[${index}] is required`));
             mounts.forEach((mount, index) => {
-              assertTruthy(mount.source, `mounts[${index}].source 不能为空`);
-              assertTruthy(mount.target, `mounts[${index}].target 不能为空`);
+              assertTruthy(mount.source, `mounts[${index}].source is required`);
+              assertTruthy(mount.target, `mounts[${index}].target is required`);
             });
-            return `${devices.length} 个设备，${mounts.length} 个挂载`;
+            return `${devices.length} devices, ${mounts.length} mounts`;
           },
         },
         {
-          title: "挂载源与设备是否存在",
-          detail: "检查 container devices 和 mounts.source 是否真实存在",
+          title: "Mount Sources and Devices Exist",
+          detail: "Check whether container devices and mounts.source exist",
           run: async () => {
             const data = await getResourceChecks();
             assertResourcePayload(data);
             const ioChecks = (data.checks || []).filter((check) => (
-              check.name.startsWith("设备文件") || check.name.startsWith("挂载源")
+              check.name.startsWith("Device file") || check.name.startsWith("Mount source")
             ));
-            if (!ioChecks.length) return "未配置额外设备或挂载源";
+            if (!ioChecks.length) return "No extra devices or mount sources configured";
             assertChecksOk(ioChecks);
             return ioChecks.map((check) => `${check.name}: ${check.message}`).join("；");
           },
         },
         {
-          title: "环境变量",
-          detail: "检查 env_vars 的 key/value 是否可用",
+          title: "Environment Variables",
+          detail: "Check whether env_vars keys and values are usable",
           run: () => {
             const envVars = config.container_cfg?.env_vars || {};
-            if (!isPlainObject(envVars)) throw new Error("env_vars 必须是对象或 null");
+            if (!isPlainObject(envVars)) throw new Error("env_vars must be an object or null");
             Object.entries(envVars).forEach(([key, value]) => {
-              assertTruthy(key.trim(), "环境变量 key 不能为空");
-              if (value === null || value === undefined) throw new Error(`${key} 的值不能为空`);
+              assertTruthy(key.trim(), "Environment variable key is required");
+              if (value === null || value === undefined) throw new Error(`${key} value is required`);
             });
-            return `${Object.keys(envVars).length} 个环境变量`;
+            return `${Object.keys(envVars).length} environment variables`;
           },
         },
         {
-          title: "分布式配置",
-          detail: "检查只读分布式配置中的节点和 Ray 端口",
+          title: "Distributed Config",
+          detail: "Check nodes and Ray port in the read-only distributed config",
           run: () => {
             const dist = config.distributed_cfg;
-            if (!dist) return "未启用分布式配置";
-            assertTruthy(dist.head_node, "head_node 不能为空");
+            if (!dist) return "Distributed config is disabled";
+            assertTruthy(dist.head_node, "head_node is required");
             assertPort(dist.ray_port, "ray_port");
-            if (!Array.isArray(dist.worker_nodes)) throw new Error("worker_nodes 必须是数组");
-            dist.worker_nodes.forEach((node, index) => assertTruthy(node, `worker_nodes[${index}] 不能为空`));
+            if (!Array.isArray(dist.worker_nodes)) throw new Error("worker_nodes must be an array");
+            dist.worker_nodes.forEach((node, index) => assertTruthy(node, `worker_nodes[${index}] is required`));
             if (!Number.isInteger(dist.num_nodes) || dist.num_nodes < 1) {
-              throw new Error("num_nodes 必须是正整数");
+              throw new Error("num_nodes must be a positive integer");
             }
-            return `${dist.num_nodes} 节点，${dist.worker_nodes.length} 个 worker`;
+            return `${dist.num_nodes} nodes, ${dist.worker_nodes.length} workers`;
           },
         },
         {
-          title: "分布式机器连通性",
-          detail: "暂不执行网络连通性检测",
+          title: "Distributed Machine Connectivity",
+          detail: "Network connectivity checks are not run yet",
           run: () => {
             const dist = config.distributed_cfg;
-            if (!dist) return "未启用分布式配置";
+            if (!dist) return "Distributed config is disabled";
             return {
               status: "warning",
-              message: "暂不支持分布式机器连通性检测，请人工确认 head/worker 节点和 Ray/SSH 端口可访问。",
+              message: "Distributed machine connectivity checks are not supported yet. Please manually confirm head/worker nodes and Ray/SSH ports are reachable.",
             };
           },
         },
         {
-          title: "后端 Pydantic 模型校验",
-          detail: "调用 Python 后端 VAPConfig 做最终结构校验",
+          title: "Backend Pydantic Model Validation",
+          detail: "Call the Python backend VAPConfig model for final structural validation",
           run: async () => {
             const data = await validateConfigOnServer(config);
             if (data.valid === false) {
               const messages = (data.errors || [])
                 .map((error) => `${error.path || "root"}: ${error.message || error.msg || error}`)
                 .join("\n");
-              throw new Error(messages || data.message || "后端校验失败");
+              throw new Error(messages || data.message || "Backend validation failed");
             }
-            return data.docker_image || data.summary?.docker_image || data.message || "后端校验通过";
+            return data.docker_image || data.summary?.docker_image || data.message || "Backend validation passed";
           },
         },
       ];
@@ -1871,8 +2023,8 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(config),
       });
-      const data = await readJsonResponse(response, "端口检测失败");
-      if (!response.ok) throw new Error(data.error || data.message || "端口检测失败");
+      const data = await readJsonResponse(response, "Port check failed");
+      if (!response.ok) throw new Error(data.error || data.message || "Port check failed");
       return data;
     }
 
@@ -1883,10 +2035,10 @@
         body: JSON.stringify(config),
       });
       if (response.status === 404) {
-        throw new Error("资源检测接口不存在，请重启 VAP 配置服务后刷新页面");
+        throw new Error("Resource check API does not exist. Restart the VAP config service and refresh the page.");
       }
-      const data = await readJsonResponse(response, "资源检测失败");
-      if (!response.ok) throw new Error(data.error || data.message || "资源检测失败");
+      const data = await readJsonResponse(response, "Resource check failed");
+      if (!response.ok) throw new Error(data.error || data.message || "Resource check failed");
       return data;
     }
 
@@ -1895,7 +2047,7 @@
         const messages = (data.errors || [])
           .map((error) => `${error.path || "root"}: ${error.message || error}`)
           .join("\n");
-        throw new Error(messages || "资源检测前配置校验失败");
+        throw new Error(messages || "Config validation failed before resource checks");
       }
     }
 
@@ -1921,12 +2073,12 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(config),
         });
-        const data = await readJsonResponse(fallback, "后端校验失败");
-        if (!fallback.ok) throw new Error(data.error || data.message || "后端校验失败");
+        const data = await readJsonResponse(fallback, "Backend validation failed");
+        if (!fallback.ok) throw new Error(data.error || data.message || "Backend validation failed");
         return data;
       }
-      const data = await readJsonResponse(response, "后端校验失败");
-      if (!response.ok) throw new Error(data.error || data.message || "后端校验失败");
+      const data = await readJsonResponse(response, "Backend validation failed");
+      if (!response.ok) throw new Error(data.error || data.message || "Backend validation failed");
       return data;
     }
 
@@ -1940,8 +2092,8 @@
           </div>
         </div>
       `).join("");
-      validationSubtitle.textContent = `本次共校验 ${steps.length} 项`;
-      validationSummary.textContent = "校验中...";
+      validationSubtitle.textContent = `Validating ${steps.length} items`;
+      validationSummary.textContent = "Validating...";
       setValidationProgress(0, steps.length);
       validationModal.classList.add("show");
     }
@@ -1979,9 +2131,9 @@
           const result = await step.run();
           if (result && typeof result === "object" && result.status === "warning") {
             warnings.push({ title: step.title, message: result.message });
-            setValidationStep(index, "warning", result.message || "暂不支持");
+            setValidationStep(index, "warning", result.message || "Not supported yet");
           } else {
-            setValidationStep(index, "ok", result || "通过");
+            setValidationStep(index, "ok", result || "Passed");
           }
         } catch (error) {
           failures.push({ title: step.title, message: error.message });
@@ -1992,28 +2144,28 @@
       }
 
       if (failures.length) {
-        validationSubtitle.textContent = `完成：${steps.length - failures.length} 项通过，${failures.length} 项失败`;
-        validationSummary.textContent = "配置存在问题，请按失败项修改后重新校验。";
-        showToast(`校验失败: ${failures.length} 项未通过`, "error");
+        validationSubtitle.textContent = `Done: ${steps.length - failures.length} passed, ${failures.length} failed`;
+        validationSummary.textContent = "The config has issues. Fix the failed items and validate again.";
+        showToast(`Validation failed: ${failures.length} items failed`, "error");
         return;
       }
 
       if (warnings.length) {
-        validationSubtitle.textContent = `完成：${steps.length - warnings.length} 项通过，${warnings.length} 项提示`;
-        validationSummary.textContent = "配置校验通过，但存在暂不支持的检查项，请按提示人工确认。";
-        showToast(`校验通过，${warnings.length} 项需人工确认`);
+        validationSubtitle.textContent = `Done: ${steps.length - warnings.length} passed, ${warnings.length} warnings`;
+        validationSummary.textContent = "Config validation passed, but some unsupported checks need manual confirmation.";
+        showToast(`Validation passed with ${warnings.length} manual confirmations`);
         return;
       }
 
-      validationSubtitle.textContent = `完成：${steps.length} 项全部通过`;
-      validationSummary.textContent = "配置校验全部通过，可以继续保存或运行。";
-      showToast("配置校验全部通过");
+      validationSubtitle.textContent = `Done: all ${steps.length} items passed`;
+      validationSummary.textContent = "Config validation passed. You can download the config or run it.";
+      showToast("Config validation passed");
     }
 
     async function pollStatus() {
       const response = await fetch("/api/run/status");
-      const data = await readJsonResponse(response, "读取运行状态失败");
-      if (!response.ok) throw new Error(data.message || "读取运行状态失败");
+      const data = await readJsonResponse(response, "Failed to read run status");
+      if (!response.ok) throw new Error(data.message || "Failed to read run status");
       const vapLogContent = data.logs?.["vap_log.txt"]?.exists
         ? data.logs["vap_log.txt"].content
         : (data.output || data.logs?.["vap_log.txt"]?.message || "");
@@ -2022,13 +2174,13 @@
       setTensorBoardReady(Boolean(data.running && vapLogContent.includes("TensorBoard started with pid")));
 
       if (data.running) {
-        setRunState("running", "运行中");
+        setRunState("running", "Running");
         startStatusPolling();
       } else if (data.exit_code !== null && data.exit_code !== undefined) {
-        setRunState(data.exit_code === 0 ? "done" : "error", data.exit_code === 0 ? "完成" : `失败 ${data.exit_code}`);
+        setRunState(data.exit_code === 0 ? "done" : "error", data.exit_code === 0 ? "Done" : `Failed ${data.exit_code}`);
         stopStatusPolling();
       } else {
-        setRunState("", "空闲");
+        setRunState("", "Idle");
         stopStatusPolling();
       }
       refreshFileLogs();
@@ -2038,27 +2190,27 @@
       const config = buildConfig();
       logOutput.textContent = "";
       setTensorBoardReady(false);
-      setRunState("running", "启动中");
+      setRunState("running", "Starting");
       const response = await fetch("/api/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(config),
       });
-      const data = await readJsonResponse(response, "启动失败");
+      const data = await readJsonResponse(response, "Failed to start");
       if (!response.ok) {
         setTensorBoardReady(false);
-        setRunState("error", "启动失败");
-        throw new Error(data.error || data.message || "启动失败");
+        setRunState("error", "Start failed");
+        throw new Error(data.error || data.message || "Failed to start");
       }
       await pollStatus();
       startStatusPolling();
-      showToast("VAP 已启动");
+      showToast("VAP started");
     }
 
     async function stopVap() {
       const response = await fetch("/api/run/stop", { method: "POST" });
-      const data = await readJsonResponse(response, "停止失败");
-      showToast(data.message || "已发送停止信号");
+      const data = await readJsonResponse(response, "Failed to stop");
+      showToast(data.message || "Stop signal sent");
       await pollStatus();
     }
 
@@ -2067,7 +2219,7 @@
       const protocol = location.protocol === "https:" ? "https:" : "http:";
       const url = `${protocol}//${location.hostname}:6006/`;
       window.open(url, "_blank", "noopener,noreferrer");
-      showToast("已打开 TensorBoard 页面");
+      showToast("TensorBoard opened");
     }
 
     document.querySelectorAll("[data-add-kv]").forEach((button) => {
@@ -2116,7 +2268,7 @@
     applyTheme(getCurrentTheme());
     initLayoutSplitter();
     loadConfig().catch((error) => {
-      showToast("加载配置失败: " + error.message, "error");
+      showToast("Failed to load config: " + error.message, "error");
       fillForm({});
     });
     pollStatus();
