@@ -1930,6 +1930,9 @@ class VAPConfigHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/agent/status":
             self.handle_agent_status()
             return
+        if parsed.path == "/favicon.svg":
+            self.serve_static("favicon.svg")
+            return
         if parsed.path.startswith("/public/"):
             self.serve_static(parsed.path.removeprefix("/public/"))
             return
@@ -2101,9 +2104,7 @@ class VAPConfigHandler(BaseHTTPRequestHandler):
             self.send_json({"message": str(exc)}, HTTPStatus.BAD_REQUEST)
             return
         content_type = (
-            "application/gzip"
-            if trace_path.suffix == ".gz"
-            else "application/json"
+            "application/gzip" if trace_path.suffix == ".gz" else "application/json"
         )
         self.send_binary(
             content,
@@ -2309,6 +2310,8 @@ class VAPConfigHandler(BaseHTTPRequestHandler):
             content_type = "text/css; charset=utf-8"
         elif static_path.suffix == ".js":
             content_type = "application/javascript; charset=utf-8"
+        elif static_path.suffix == ".svg":
+            content_type = "image/svg+xml"
 
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", content_type)
